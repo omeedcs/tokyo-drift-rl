@@ -6,6 +6,7 @@ import sys
 import math
 
 def get_value_at_time(time, times, values):
+
     if time < times[0]:
         return values[0]
     elif time > times[-1]:
