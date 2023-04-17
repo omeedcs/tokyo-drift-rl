@@ -98,17 +98,16 @@ def extract_tracking_cam_data(subfolder):
 
 def find_start_and_end_time(time, vels):
 
-
     start = -1
     end = -1
     starti, endi = 0, 0
     for i in range(vels.size):
-        if vels[i] > 0.4:
+        if abs(vels[i]) > 0.4:
             start = time[i]
             starti = i
             break
     for i in range(vels.size-1, -1, -1):
-        if vels[i] > 0.4:
+        if abs(vels[i]) > 0.4:
             end = time[i]
             endi = i
             break

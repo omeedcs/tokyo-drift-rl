@@ -27,7 +27,7 @@ drive_joystick_idx = 3
 
 # given a time, return how many seconds it is from the start of the bag
 # s is the number of seconds to look back, default is 1 second meaning 40 data points
-def get_imu_data_at_time(time, imu_time, imu_accel, imu_gyro, s = 58):
+def get_imu_data_at_time(time, imu_time, imu_accel, imu_gyro, s = 1):
     imu_hz = 40
     window_size = s * imu_hz
 
@@ -41,15 +41,7 @@ def get_imu_data_at_time(time, imu_time, imu_accel, imu_gyro, s = 58):
             left = mid
         else:
             right = mid
-
-    start = max(0, mid - window_size)
-    end = mid
-
-    accel_data = imu_accel[start:end].flatten()
-    gyro_data = imu_gyro[start:end].flatten()
-
-    return np.concatenate([accel_data, gyro_data])
-    # return np.concatenate([imu_accel[mid-window_size:mid].flatten(), imu_gyro[mid-window_size:mid].flatten()])
+    return np.concatenate([imu_accel[mid-window_size:mid].flatten(), imu_gyro[mid-window_size:mid].flatten()])
 
 def write_train_data(imu_delay, cam_delay, odom_delay, subfolder):
     
@@ -134,7 +126,7 @@ if __name__ == "__main__":
         odom_delay = -0.588
 
     # NOTE: fixed align to be purely IMU/Joystick (omeed)
-    imu_delay = align(subfolder)
+    # imu_delay = align(subfolder)
     # print("imu delay:", imu_delay)
 
     write_train_data(imu_delay,cam_delay,odom_delay,"ikddata2")   
