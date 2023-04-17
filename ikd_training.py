@@ -96,14 +96,14 @@ if __name__ == '__main__':
     data = pd.read_csv(data_name)
 
     joystick = np.array([eval(i) for i in data["joystick"]])
-    # realsens = np.array([eval(i) for i in data["executed"]])
+    realsens = np.array([eval(i) for i in data["executed"]])
     imu = np.array([eval(i) for i in data["imu"]])
 
     imu_mean = np.mean(imu, axis=0)
     imu_std = np.std(imu, axis=0)
     imu = (imu - imu_mean) / imu_std
 
-    data = np.concatenate((joystick,imu), axis=1)
+    data = np.concatenate((joystick, realsens,imu), axis=1)
 
 
     # if os.path.isfile("./ikddata2.pt"):
@@ -150,9 +150,9 @@ if __name__ == '__main__':
         idx = np.arange(N_train)
         np.random.shuffle(idx)
 
-        # # realsense data
-        # input_v = data_train[idx, 2] 
-        # input_c = data_train[idx, 3]
+        # realsense data
+        input_v = data_train[idx, 2] 
+        input_c = data_train[idx, 3]
 
         # joystick data
         label_v = data_train[idx, 0]
@@ -163,19 +163,19 @@ if __name__ == '__main__':
         ep_loss = 0
     
         for i in range(1, N_train, batch_size):
-            # input_v_ = torch.FloatTensor(input_v[i:min(i+batch_size, N_train)])
-            # input_c_ = torch.FloatTensor(input_c[i:min(i+batch_size, N_train)])
+            input_v_ = torch.FloatTensor(input_v[i:min(i+batch_size, N_train)])
+            input_c_ = torch.FloatTensor(input_c[i:min(i+batch_size, N_train)])
             label_v_ = torch.FloatTensor(label_v[i:min(i+batch_size, N_train)])
             label_c_ = torch.FloatTensor(label_c[i:min(i+batch_size, N_train)])
             input_imu_ = torch.FloatTensor(input_imu[i:min(i + batch_size, N_train)])
     
-            # input_v_ = torch.clamp(input_v_, 0, 6) / 6
-            # input_c_ = torch.clamp(input_c_, -2, 2) / 2
+            input_v_ = torch.clamp(input_v_, 0, 6) / 6
+            input_c_ = torch.clamp(input_c_, -2, 2) / 2
             label_v_ = torch.clamp(label_v_, 0, 6) / 6
             label_c_ = torch.clamp(label_c_, -2, 2) / 2
             # input_imu_ = input_imu_
     
-            # input = torch.cat([input_v_.view(-1, 1), input_c_.view(-1, 1), input_imu_], -1)
+            input = torch.cat([input_v_.view(-1, 1), input_c_.view(-1, 1), input_imu_], -1)
             label = torch.cat([label_v_.view(-1, 1), label_c_.view(-1, 1)], 1)
             # input = torch.cat([input_v_.view(-1, 1), input_c_.view(-1, 1)], -1)
             output = model(input)
