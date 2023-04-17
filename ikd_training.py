@@ -106,27 +106,26 @@ if __name__ == '__main__':
     data = np.concatenate((joystick, realsens,imu), axis=1)
 
 
-    # if os.path.isfile("./ikddata2.pt"):
-    #     model = IKDModel(joystick.shape[1], imu.shape[1])
-    #     model.load_state_dict(torch.load("./ikddata2.pt"))
+    if os.path.isfile("./ikddata2.pt"):
+        model = IKDModel(joystick.shape[1], imu.shape[1])
+        model.load_state_dict(torch.load("./ikddata2.pt"))
+        input_v = torch.FloatTensor([data[5052, 2]])
+        input_c = torch.FloatTensor([data[5052, 3]])
+        label_v = torch.FloatTensor([data[5052, 0]])
+        label_c = torch.FloatTensor([data[5052, 1]])
+        input_imu = torch.FloatTensor([data[5052, 4:]])
 
-    #     input_v = torch.FloatTensor([data[5052, 2]])
-    #     input_c = torch.FloatTensor([data[5052, 3]])
-    #     label_v = torch.FloatTensor([data[5052, 0]])
-    #     label_c = torch.FloatTensor([data[5052, 1]])
-    #     input_imu = torch.FloatTensor([data[5052, 4:]])
+        input_v = torch.clamp(input_v, 0, 6) / 6
+        input_c = torch.clamp(input_c, -2, 2) / 2
+        label_v = torch.clamp(label_v, 0, 6) / 6
+        label_c = torch.clamp(label_c, -2, 2) / 2
 
-    #     input_v = torch.clamp(input_v, 0, 6) / 6
-    #     input_c = torch.clamp(input_c, -2, 2) / 2
-    #     label_v = torch.clamp(label_v, 0, 6) / 6
-    #     label_c = torch.clamp(label_c, -2, 2) / 2
+        input = torch.cat([input_v.view(1, -1), input_c.view(1, -1), input_imu], -1)
 
-    #     input = torch.cat([input_v.view(1, -1), input_c.view(1, -1), input_imu], -1)
+        traced_script_module = torch.jit.trace(model, input)
+        traced_script_module.save("ikd_trace.pt")
 
-    #     traced_script_module = torch.jit.trace(model, input)
-    #     traced_script_module.save("ikd_trace.pt")
-
-    # sys.exit()
+    sys.exit()
 
     N = len(imu)
     N_train = N // 10 * 9
@@ -195,6 +194,7 @@ if __name__ == '__main__':
 
 
     # trace the pytorch model to libtorch model
+
     # model = IKDModel(2, 600)
     # model.load_state_dict(torch.load("training_backyard_ackermann_imu_enconder.pt"))
     # data = loadmat('/home/xuesu/Desktop/offroadnav_data/backyard_training/ackermann/training_backyard_ackermann_imu_ALL.mat')
