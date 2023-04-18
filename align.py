@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 import math
 from math_helpers import get_value_at_time, euler_from_quaternion, subt_poses
-from extractors import extract_imu_data, extract_joystick_data, extract_tracking_cam_data, extract_tracking_cam_odom, extract_vesc_odom, find_start_and_end_time
+from extractors import extract_imu_data, extract_joystick_data, find_start_and_end_time
 
 # NOTE: changed to match UT Automata car.
 normal_speed = 1.0
@@ -21,9 +21,6 @@ steering_to_servo_offset = 0.57
 servo_min = 0.05 
 servo_max = 0.95 
 wheelbase = 0.324
-
-steer_joystick_idx = 0
-drive_joystick_idx = 3
 
 # given a time, return how many seconds it is from the start of the bag
 # s is the number of seconds to look back, default is 1 second meaning 40 data points
@@ -43,7 +40,7 @@ def get_imu_data_at_time(time, imu_time, imu_accel, imu_gyro, s = 1):
             right = mid
     return np.concatenate([imu_accel[mid-window_size:mid].flatten(), imu_gyro[mid-window_size:mid].flatten()])
 
-def write_train_data(imu_delay, cam_delay, odom_delay, subfolder):
+def write_train_data(imu_delay, subfolder):
     
     imu_data = extract_imu_data("./" + subfolder+ "/_slash_vectornav_slash_IMU.csv")
     joystick_data = extract_joystick_data(subfolder)
@@ -142,4 +139,4 @@ if __name__ == "__main__":
     # imu_delay = align(subfolder)
     # print("imu delay:", imu_delay)
 
-    write_train_data(imu_delay,cam_delay,odom_delay,"ikddata2")   
+    write_train_data(imu_delay,"ikddata2")   

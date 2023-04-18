@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import math
-from math_helpers import euler_from_quaternion
 
 # NOTE: changed to match UT Automata car.
 normal_speed = 1.0
@@ -20,81 +19,6 @@ steering_to_servo_offset = 0.57
 servo_min = 0.05 
 servo_max = 0.95 
 wheelbase = 0.324
-
-steer_joystick_idx = 0
-drive_joystick_idx = 3
-
-def extract_vesc_odom(subfolder):
-    data_frame = pd.read_csv("./mat_data/"+subfolder+"/_slash_odom.csv")
-    nsecs = data_frame["rosbagTimestamp"].to_numpy()
-    # nsecs = data_frame["nsecs"].to_numpy()
-    times = (nsecs - nsecs[0]) / 1e9
-    
-    # you need to find differences in each timestep
-    x_pos = data_frame["x"].to_numpy()
-    y_pos = data_frame["y"].to_numpy()
-    roll, pitch, yaw = euler_from_quaternion(data_frame['x.1'].to_numpy(), data_frame['y.1'].to_numpy(),data_frame['z.1'].to_numpy(),data_frame['w'].to_numpy());
-
-    # each difference should be associated with the timestamp right before it, it should correspond with the joystick command that caused this displacement to happen
-    # x_pos = np.diff(x_pos)
-    # y_pos = np.diff(y_pos)
-    theta = np.diff(yaw)
-    diff_time = np.diff(times)
-    # times = times[:-1]
-
-    # print([i for i in ang_vel if i != 0])
-
-    ang_vel = theta / diff_time;
-    # ang_vel = np.concatenate
-
-    return (times, x_pos, y_pos, yaw, ang_vel)
-
-
-# gets the position and orientation     
-def extract_tracking_cam_odom(subfolder):
-    data_frame = pd.read_csv("./mat_data/"+subfolder+"/_slash_camera_slash_odom_slash_sample.csv")
-
-    secs = data_frame["secs"].to_numpy()
-    nsecs = data_frame["nsecs"].to_numpy()
-    times = secs + nsecs / 1e9 - secs[0]
-    
-    # you need to find differences in each timestep
-    x_pos = data_frame["x"].to_numpy()
-    y_pos = data_frame["y"].to_numpy()
-    _, _, yaw = euler_from_quaternion(data_frame['x.1'].to_numpy(), data_frame['y.1'].to_numpy(),data_frame['z.1'].to_numpy(),data_frame['w'].to_numpy());
-
-    # each difference should be associated with the timestamp right before it, it should correspond with the joystick command that caused this displacement to happen
-    # x_pos = np.diff(x_pos)
-    # y_pos = np.diff(y_pos)
-    # theta = np.diff(yaw)
-    # times = times[:-1]
-    durations = np.diff(times)
-
-    return (times, x_pos, y_pos, yaw, durations)
-
-    # for ikd slam, you do the same input to the model where you encode imu into 
-
-def extract_tracking_cam_data(subfolder):
-    data_frame = pd.read_csv("./mat_data/"+subfolder+"/_slash_camera_slash_odom_slash_sample.csv")
-
-    secs = data_frame["secs"].to_numpy()
-    nsecs = data_frame["nsecs"].to_numpy()
-    times = secs + nsecs / 1e9 - secs[0]
-
-    x_vel = data_frame["x.2"].to_numpy()
-    y_vel = data_frame["y.2"].to_numpy()
-    velocities = (x_vel**2 + y_vel**2)**0.5
-    velocities = np.array([velocities[i] if x_vel[i] > 0 else -velocities[i] for i in range(velocities.size)])
-    angular_vels = data_frame["z.3"].to_numpy()
-    # angular_vels = np.array([angular_vels[i] if velocities[i] > 0.05 else 0 for i in range(angular_vels.size)])
-    realsense_curvature = angular_vels / velocities
-
-    # plt.plot(times, angular_vels, label='w')
-    # plt.plot(times, velocities, label = 'v')
-    # plt.legend()
-    # plt.show()
-
-    return (times, velocities, angular_vels, x_vel, y_vel, realsense_curvature)
 
 def find_start_and_end_time(time, vels):
 
