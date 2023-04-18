@@ -9,21 +9,6 @@ import pandas as pd
 import sys
 import os
 
-# class IKDModel(nn.Module):
-#     def __init__(self):
-#         super(IKDModel, self).__init__()
-#         self.fc1 = nn.Linear(2, 64)
-#         self.fc2 = nn.Linear(64, 128)
-#         self.fc3 = nn.Linear(128, 64)
-#         self.fc4 = nn.Linear(64, 1)
-
-#     def forward(self, x):
-#         x = F.relu(self.fc1(x))
-#         x = F.relu(self.fc2(x))
-#         x = F.relu(self.fc3(x))
-#         x = self.fc4(x)
-#         return x
-
 class IKDModel(nn.Module):
 
     def __init__(self, dim_input_command, dim_input_imu):
@@ -31,10 +16,10 @@ class IKDModel(nn.Module):
         dim_hidden_imu = 256
         dim_output_imu = 2
         self.cmd_dim = dim_input_command
-        self.imu_dim = dim_input_imu
+        # self.imu_dim = dim_input_imu
         self.imu = nn.Sequential(
-            nn.Linear(dim_input_imu, dim_hidden_imu),
-            nn.ReLU(),
+            # nn.Linear(dim_input_imu, dim_hidden_imu),
+            # nn.ReLU(),
             nn.Linear(dim_hidden_imu, dim_hidden_imu),
             nn.ReLU(),
             nn.Linear(dim_hidden_imu, dim_output_imu),
@@ -64,6 +49,7 @@ class IKDModel(nn.Module):
         c = torch.tanh(c)
         # sys.exit()
         return c
+
 
 def test(model, data_test, batch_size):
     N_test = data_test.shape[0]
@@ -104,90 +90,105 @@ def test(model, data_test, batch_size):
 if __name__ == '__main__':
 
 
-    # NOTE: TRAINING 
+    # Training 
+    
     data_name = './dataset/ikddata2.csv'
     data = pd.read_csv(data_name)
+
     joystick = np.array([eval(i) for i in data["joystick"]])
-    executed = np.array([eval(i) for i in data["executed"]])
-    data = np.concatenate((joystick, executed), axis = 1)
-  
+    # realsens = np.array([eval(i) for i in data["executed"]])
+    # imu = np.array([eval(i) for i in data["imu"]])
+
+    # imu_mean = np.mean(imu, axis=0)
+    # imu_std = np.std(imu, axis=0)
+    # imu = (imu - imu_mean) / imu_std
+
+    data = np.concatenate((joystick), axis=1)
 
 
+    # if os.path.isfile("./ikddata2.pt"):
+    #     model = IKDModel(joystick.shape[1], imu.shape[1])
+    #     model.load_state_dict(torch.load("./ikddata2.pt"))
+    #     input_v = torch.FloatTensor([data[5052, 2]])
+    #     input_c = torch.FloatTensor([data[5052, 3]])
+    #     label_v = torch.FloatTensor([data[5052, 0]])
+    #     label_c = torch.FloatTensor([data[5052, 1]])
+    #     input_imu = torch.FloatTensor([data[5052, 4:]])
 
-    if os.path.isfile("./ikddata2.pt"):
-        model = IKDModel(1, 1)
-        model.load_state_dict(torch.load("./ikddata2.pt"))
-        label_v = torch.FloatTensor([data[5052, 0]])
-        label_c = torch.FloatTensor([data[5052, 1]])
-        input_imu = torch.FloatTensor([data[5052, 2]])
+    #     input_v = torch.clamp(input_v, 0, 6) / 6
+    #     input_c = torch.clamp(input_c, -2, 2) / 2
+    #     label_v = torch.clamp(label_v, 0, 6) / 6
+    #     label_c = torch.clamp(label_c, -2, 2) / 2
 
-        label_v = torch.clamp(label_v, 0, 6) / 6
-        label_c = torch.clamp(label_c, -2, 2) / 2
-        input_imu = torch.clamp(input_imu, -2, 2) / 2
+    #     input = torch.cat([input_v.view(1, -1), input_c.view(1, -1), input_imu], -1)
 
-        input = torch.cat([label_v.view(-1, 1), input_imu.view(-1, 1)], -1)
+    #     traced_script_module = torch.jit.trace(model, input)
+    #     traced_script_module.save("ikd_trace.pt")
 
-        traced_script_module = torch.jit.trace(model, input)
-        traced_script_module.save("ikd_trace.pt")
+    # sys.exit()
 
-    sys.exit()
-
-
-    N = len(executed)
+    N = len(imu)
     N_train = N // 10 * 9
     N_test = N - N_train
-    idx_train = np.random.choice(N, N_train, replace = False)
+    Idx_train = np.random.choice(N, N_train, replace=False)
     mask = np.ones(N, dtype=bool)
-    mask[idx_train] = False
+    mask[Idx_train] = False
     
     data_train = data[np.invert(mask),]
     data_test = data[mask,]
 
-    model = IKDModel(1, 1)
-    opt = torch.optim.Adam(model.parameters(), lr= 1e-4, weight_decay =1e-3)
+    # print(joystick.shape[1], imu.shape[1])
+    # sys.exit()
     
-    n_ep = 150
+    model = IKDModel(joystick.shape[1], imu.shape[1])
+    opt = torch.optim.Adam(model.parameters(), lr=3e-4, weight_decay=1e-3)
+    
+    n_ep = 50
     batch_size = 64
     for ep in range(n_ep):
-
         idx = np.arange(N_train)
         np.random.shuffle(idx)
 
-        # joystick velocity
-        label_v = data_train[idx, 0]
+        # realsense data
+        input_v = data_train[idx, 2] 
+        input_c = data_train[idx, 3]
 
-        # joystick angular velocity
+        # joystick data
+        label_v = data_train[idx, 0]
         label_c = data_train[idx, 1] 
-        input_imu = data_train[idx, 2] # input imu data
+
+        input_imu = data_train[idx, 4:] # input imu data
+    
         ep_loss = 0
     
-        for i in range(1,  N_train, batch_size):
-                        
-        
-            end_idx = min(i + batch_size, N_train)
-            label_v_ = torch.FloatTensor(label_v[i:end_idx])
-            label_c_ = torch.FloatTensor(label_c[i:end_idx])
-            input_imu_ = torch.FloatTensor(input_imu[i:end_idx])
-
-            input_imu_ = torch.clamp(input_imu_, -2, 2) / 2
+        for i in range(1, N_train, batch_size):
+            input_v_ = torch.FloatTensor(input_v[i:min(i+batch_size, N_train)])
+            input_c_ = torch.FloatTensor(input_c[i:min(i+batch_size, N_train)])
+            label_v_ = torch.FloatTensor(label_v[i:min(i+batch_size, N_train)])
+            label_c_ = torch.FloatTensor(label_c[i:min(i+batch_size, N_train)])
+            input_imu_ = torch.FloatTensor(input_imu[i:min(i + batch_size, N_train)])
+    
+            input_v_ = torch.clamp(input_v_, 0, 6) / 6
+            input_c_ = torch.clamp(input_c_, -2, 2) / 2
             label_v_ = torch.clamp(label_v_, 0, 6) / 6
             label_c_ = torch.clamp(label_c_, -2, 2) / 2
-            
-            # the joystick velocity and true angular velocity
-            input = torch.cat([label_v_.view(-1, 1), input_imu_.view(-1, 1)], -1)
-            label = label_c_.view(-1, 1)
-            
-            # model should output the estimated angular velocity
+            # input_imu_ = input_imu_
+    
+            input = torch.cat([input_v_.view(-1, 1), input_c_.view(-1, 1), input_imu_], -1)
+            label = torch.cat([label_v_.view(-1, 1), label_c_.view(-1, 1)], 1)
+            # input = torch.cat([input_v_.view(-1, 1), input_c_.view(-1, 1)], -1)
             output = model(input)
-            
+    
+            opt.zero_grad()
+    
             loss = F.mse_loss(output, label)
             loss.backward()
             opt.step()
             ep_loss += loss.item()
-
+    
         print("[INFO] epoch {} | loss {:10.4f}".format(ep, ep_loss / (N_train // batch_size)))
     
-        # test(model, data_test, batch_size)
+        test(model, data_test, batch_size)
         torch.save(model.state_dict(), "ikddata2.pt")
     print('done')
 
