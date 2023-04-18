@@ -16,10 +16,10 @@ class IKDModel(nn.Module):
         dim_hidden_imu = 256
         dim_output_imu = 2
         self.cmd_dim = dim_input_command
-        self.imu_dim = dim_input_imu
+        # self.imu_dim = dim_input_imu
         self.imu = nn.Sequential(
-            nn.Linear(dim_input_imu, dim_hidden_imu),
-            nn.ReLU(),
+            # nn.Linear(dim_input_imu, dim_hidden_imu),
+            # nn.ReLU(),
             nn.Linear(dim_hidden_imu, dim_hidden_imu),
             nn.ReLU(),
             nn.Linear(dim_hidden_imu, dim_output_imu),
@@ -96,36 +96,36 @@ if __name__ == '__main__':
     data = pd.read_csv(data_name)
 
     joystick = np.array([eval(i) for i in data["joystick"]])
-    realsens = np.array([eval(i) for i in data["executed"]])
-    imu = np.array([eval(i) for i in data["imu"]])
+    # realsens = np.array([eval(i) for i in data["executed"]])
+    # imu = np.array([eval(i) for i in data["imu"]])
 
-    imu_mean = np.mean(imu, axis=0)
-    imu_std = np.std(imu, axis=0)
-    imu = (imu - imu_mean) / imu_std
+    # imu_mean = np.mean(imu, axis=0)
+    # imu_std = np.std(imu, axis=0)
+    # imu = (imu - imu_mean) / imu_std
 
-    data = np.concatenate((joystick, realsens,imu), axis=1)
+    data = np.concatenate((joystick), axis=1)
 
 
-    if os.path.isfile("./ikddata2.pt"):
-        model = IKDModel(joystick.shape[1], imu.shape[1])
-        model.load_state_dict(torch.load("./ikddata2.pt"))
-        input_v = torch.FloatTensor([data[5052, 2]])
-        input_c = torch.FloatTensor([data[5052, 3]])
-        label_v = torch.FloatTensor([data[5052, 0]])
-        label_c = torch.FloatTensor([data[5052, 1]])
-        input_imu = torch.FloatTensor([data[5052, 4:]])
+    # if os.path.isfile("./ikddata2.pt"):
+    #     model = IKDModel(joystick.shape[1], imu.shape[1])
+    #     model.load_state_dict(torch.load("./ikddata2.pt"))
+    #     input_v = torch.FloatTensor([data[5052, 2]])
+    #     input_c = torch.FloatTensor([data[5052, 3]])
+    #     label_v = torch.FloatTensor([data[5052, 0]])
+    #     label_c = torch.FloatTensor([data[5052, 1]])
+    #     input_imu = torch.FloatTensor([data[5052, 4:]])
 
-        input_v = torch.clamp(input_v, 0, 6) / 6
-        input_c = torch.clamp(input_c, -2, 2) / 2
-        label_v = torch.clamp(label_v, 0, 6) / 6
-        label_c = torch.clamp(label_c, -2, 2) / 2
+    #     input_v = torch.clamp(input_v, 0, 6) / 6
+    #     input_c = torch.clamp(input_c, -2, 2) / 2
+    #     label_v = torch.clamp(label_v, 0, 6) / 6
+    #     label_c = torch.clamp(label_c, -2, 2) / 2
 
-        input = torch.cat([input_v.view(1, -1), input_c.view(1, -1), input_imu], -1)
+    #     input = torch.cat([input_v.view(1, -1), input_c.view(1, -1), input_imu], -1)
 
-        traced_script_module = torch.jit.trace(model, input)
-        traced_script_module.save("ikd_trace.pt")
+    #     traced_script_module = torch.jit.trace(model, input)
+    #     traced_script_module.save("ikd_trace.pt")
 
-    sys.exit()
+    # sys.exit()
 
     N = len(imu)
     N_train = N // 10 * 9

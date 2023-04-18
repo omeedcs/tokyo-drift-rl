@@ -102,12 +102,12 @@ def find_start_and_end_time(time, vels):
     end = -1
     starti, endi = 0, 0
     for i in range(vels.size):
-        if abs(vels[i]) > 0.4:
+        if vels[i] > 0.4:
             start = time[i]
             starti = i
             break
     for i in range(vels.size-1, -1, -1):
-        if abs(vels[i]) > 0.4:
+        if vels[i] > 0.4:
             end = time[i]
             endi = i
             break
@@ -132,14 +132,15 @@ def extract_imu_data(filename):
     # you need xyz of accelerometer and gyroscope
     imu_angular_vels = -(data_frame["z.1"].to_numpy())
 
-    imu_accel = np.column_stack((data_frame["x.2"].to_numpy(), data_frame["y.2"].to_numpy(), data_frame["z.2"].to_numpy()))
-    imu_gyro = np.column_stack((data_frame["x.1"].to_numpy(), data_frame["y.1"].to_numpy(), data_frame["z.1"].to_numpy()))
+    # imu_accel = np.column_stack((data_frame["x.2"].to_numpy(), data_frame["y.2"].to_numpy(), data_frame["z.2"].to_numpy()))
+    # imu_gyro = np.column_stack((data_frame["x.1"].to_numpy(), data_frame["y.1"].to_numpy(), data_frame["z.1"].to_numpy()))
     
-    return (times, imu_angular_vels, imu_accel, imu_gyro)
+    return (times, imu_angular_vels)
 
 
 def extract_joystick_data(subfolder):
     data_frame = pd.read_csv("./"+subfolder+"/_slash_joystick.csv")
+    turbo_speed = 6.0
 
     secs = data_frame["secs"].to_numpy()
     nsecs = data_frame["nsecs"].to_numpy()
@@ -153,15 +154,13 @@ def extract_joystick_data(subfolder):
         axes.append(ax)
     axes = np.array(axes)
 
-    # print(len([axe[0] for axe in axes if axe[0] != 0]))
-    # print(len([axe[0] for axe in axes if axe[0] == 0]))
+    steer_joystick = -axes[:, 0]
+    drive_joystick = -axes[:, 4]
+    turbo_mode = axes[:, 2] >= 0.9
+    max_speed = turbo_mode*turbo_speed + (1-turbo_mode)*normal_speed
+    speed = drive_joystick*max_speed
+    steering_angle = steer_joystick*maxTurnRate
 
-    steer_joystick = axes[:, steer_joystick_idx]
-    drive_joystick = axes[:, drive_joystick_idx]
-    max_speed = normal_speed
-    speed = drive_joystick*max_speed                # array of all the speeds
-    steering_angle = steer_joystick*maxTurnRate     # array of all the steering angles?
-    
     last_speed = 0.0
     clipped_speeds = []
     for s in speed:
@@ -176,13 +175,7 @@ def extract_joystick_data(subfolder):
     servo = steering_to_servo_gain * steering_angle + steering_to_servo_offset
     clipped_servo = np.fmin(np.fmax(servo, servo_min), servo_max)
     steering_angle = (clipped_servo - steering_to_servo_offset) / steering_to_servo_gain
-    # print(steering_angle)
-    # atan(wheelbase*curvature) == steering_angle
-    curvature = np.tan(steering_angle) / wheelbase
+
     rot_vel = clipped_speeds / wheelbase * np.tan(steering_angle)
-    # print(steering_angle)
-    # print(joystick_times)
-    # print(clipped_speeds)
-    # print(rot_vel)
-    # print(curvature)
-    return (joystick_times, clipped_speeds, rot_vel, curvature)
+
+    return (joystick_times, clipped_speeds, rot_vel)
