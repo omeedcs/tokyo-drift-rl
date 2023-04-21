@@ -16,10 +16,10 @@ class IKDModel(nn.Module):
         dim_hidden_imu = 256
         dim_output_imu = 2
         self.cmd_dim = dim_input_command
-        # self.imu_dim = dim_input_imu
+        self.imu_dim = dim_input_imu
         self.imu = nn.Sequential(
-            # nn.Linear(dim_input_imu, dim_hidden_imu),
-            # nn.ReLU(),
+            nn.Linear(dim_input_imu, dim_hidden_imu),
+            nn.ReLU(),
             nn.Linear(dim_hidden_imu, dim_hidden_imu),
             nn.ReLU(),
             nn.Linear(dim_hidden_imu, dim_output_imu),
@@ -96,19 +96,20 @@ if __name__ == '__main__':
     data = pd.read_csv(data_name)
 
     joystick = np.array([eval(i) for i in data["joystick"]])
-    # realsens = np.array([eval(i) for i in data["executed"]])
-    # imu = np.array([eval(i) for i in data["imu"]])
+    realsens = np.array([eval(i) for i in data["executed"]])
+    imu = np.array([eval(i) for i in data["imu"]])
 
-    # imu_mean = np.mean(imu, axis=0)
-    # imu_std = np.std(imu, axis=0)
-    # imu = (imu - imu_mean) / imu_std
+    imu_mean = np.mean(imu, axis=0)
+    imu_std = np.std(imu, axis=0)
+    imu = (imu - imu_mean) / imu_std
 
-    data = np.concatenate((joystick), axis=1)
+    data = np.concatenate((joystick, realsens,imu), axis=1)
 
 
     # if os.path.isfile("./ikddata2.pt"):
     #     model = IKDModel(joystick.shape[1], imu.shape[1])
     #     model.load_state_dict(torch.load("./ikddata2.pt"))
+
     #     input_v = torch.FloatTensor([data[5052, 2]])
     #     input_c = torch.FloatTensor([data[5052, 3]])
     #     label_v = torch.FloatTensor([data[5052, 0]])
@@ -194,7 +195,6 @@ if __name__ == '__main__':
 
 
     # trace the pytorch model to libtorch model
-
     # model = IKDModel(2, 600)
     # model.load_state_dict(torch.load("training_backyard_ackermann_imu_enconder.pt"))
     # data = loadmat('/home/xuesu/Desktop/offroadnav_data/backyard_training/ackermann/training_backyard_ackermann_imu_ALL.mat')
