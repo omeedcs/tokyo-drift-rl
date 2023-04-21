@@ -24,24 +24,19 @@ This neural network is a simple neural network with 2 hidden layers.
 class IKDModel(nn.Module):
     def __init__(self, dim_input, dim_output):
         super(IKDModel, self).__init__()
-        self.l1 = nn.Linear(dim_input, 64)
-        self.l2 = nn.Linear(64, 128)
-        self.l3 = nn.Linear(128, 64)
-        self.l4 = nn.Linear(64, 32)
-        self.correction = nn.Linear(32, dim_output)
+        self.l1 = nn.Linear(dim_input, 256)
+        self.l2 = nn.Linear(256, 256)
+        self.l3 = nn.Linear(256, 64)
+        self.correction = nn.Linear(64, dim_output)
+
 
     def forward(self, input):
-        x = self.l1(input)
-        x = F.relu(x)
-        x = self.l2(x)
-        x = F.relu(x)
-        x = self.l3(x)
-        x = F.relu(x)
-        x = self.l4(x)
-        x = F.relu(x)
+        x = F.relu(self.l1(input))
+        x = F.relu(self.l2(x))
+        x = F.relu(self.l3(x))
         x = self.correction(x)
         return x
-
+    
 if __name__ == '__main__':
 
     # NOTE: TRAINING 
@@ -49,6 +44,10 @@ if __name__ == '__main__':
     data = pd.read_csv(data_name)
     joystick = np.array([eval(i) for i in data["joystick"]])
     executed = np.array([eval(i) for i in data["executed"]])
+    
+    imu_mean = np.mean(executed, axis = 0)
+    imu_std = np.std(executed, axis = 0)
+    executed = (executed - imu_mean) / imu_std
 
     data = np.concatenate((joystick, executed), axis = 1)
     N = len(executed)
@@ -61,10 +60,10 @@ if __name__ == '__main__':
     data_train = data[np.invert(mask),]
     data_test = data[mask,]
     model = IKDModel(2, 1)
-    opt = torch.optim.Adam(model.parameters(), lr = 1e-4, weight_decay = 1e-3)
+    opt = torch.optim.Adam(model.parameters(), lr = 1e-5, weight_decay = 1e-3)
     
     n_ep = 100
-    batch_size = 1
+    batch_size = 32
 
     for ep in range(n_ep):
 
@@ -78,7 +77,7 @@ if __name__ == '__main__':
         joystick_av = data_train[idx, 1] 
 
         # ground truth angular velocity
-        true_av = data_train[idx, 2:]
+        true_av = data_train[idx, 2]
 
         # current epoch loss
         ep_loss = 0
@@ -88,46 +87,41 @@ if __name__ == '__main__':
             joystick_v_tens = torch.FloatTensor(joystick_v[i:min(i + batch_size, N_train)])
             joystick_av_tens = torch.FloatTensor(joystick_av[i:min(i + batch_size, N_train)])
             true_av_tens = torch.FloatTensor(true_av[i:min(i + batch_size, N_train)])
-
-            # normalizes the joystick velocity.
+            
             joystick_v_tens = torch.clamp(joystick_v_tens, 0, 6) / 6
             joystick_av_tens = torch.clamp(joystick_av_tens, -4, 4) / 4
+            true_av_tens = torch.clamp(true_av_tens, -4, 4) / 4
+
+            # NOTE: testing
+            # print("joystick_v_tens", torch.max(joystick_v_tens), torch.min(joystick_v_tens))
+            # print("joystick_av_tens", torch.max(joystick_av_tens), torch.min(joystick_av_tens))
+            # print("true_av_tens", torch.max(true_av_tens), torch.min(true_av_tens))
+            # print(joystick_v_tens.shape)
+            # print(joystick_av_tens.shape)
+            # print(true_av_tens.shape)
+
+            # NOTE: testing
+            # print("Shape of joystick_v_tens", joystick_v_tens.shape)
+            # print("Shape of joystick_av_tens", joystick_av_tens.shape)
+            # print("Shape of true_av_tens", true_av_tens.shape)
 
             jv = joystick_v_tens.view(-1, 1)
             jav = joystick_av_tens.view(-1, 1)
-            tav = true_av_tens
-            input = torch.cat([jv, tav], -1)
+            tav = true_av_tens.view(-1, 1)
+            
+            input = torch.cat([jv, tav], dim = -1)
+
             output = model(input)
             opt.zero_grad()
-            loss = F.mse_loss(output, jav.view(-1, 1))
+            loss = F.mse_loss(output, jav)
             loss.backward()
             opt.step()
             ep_loss += loss.item()
-
-        print("[INFO] epoch {} | loss {:10.4f}".format(ep, ep_loss / (N_train // batch_size)))
+        
+        if ep % 10 == 0:
+            print("[INFO] epoch {} | loss {:10.4f}".format(ep, ep_loss / (N_train // batch_size)))
 
         # test(model, data_test, batch_size)
         torch.save(model.state_dict(), "ikddata2.pt")
     print('done')
 
-# # Load in the trained model
-model = IKDModel(2, 1)
-model.load_state_dict(torch.load("./ikddata2.pt"))
-joystick_v = 0.7938474416732788
-joystick_av = 0.6256250954112949
-joystick_v_norm = torch.clamp(torch.FloatTensor([joystick_v]), 0, 6) / 6
-joystick_av_norm = torch.clamp(torch.FloatTensor([joystick_av]), -4, 4) / 4
-joystick_v_norm = joystick_v_norm.view(-1, 1)
-joystick_av_norm = joystick_av_norm.view(-1, 1)
-input = torch.cat([joystick_v_norm, joystick_av_norm], -1)
-normalized_output = torch.clamp(torch.FloatTensor([1.6527914337671066]), -4, 4) / 4
-print(input)
-output = model(input)
-print("---")
-print("Our Output:", output.item())
-print("Our Input: ", input)
-print("Normalized Correct Output:", normalized_output)
-print("Non-Normalized Correct Output:", 1.6527914337671066)
-print("---")
-
-# 1,"[0.7938474416732788, 0.6256250954112949]",[1.6527914337671066]

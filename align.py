@@ -43,21 +43,20 @@ def get_imu_data_at_time(time, imu_time, imu_accel, imu_gyro, s = 1):
 def write_train_data(imu_delay, subfolder):
     
     imu_data = extract_imu_data("./" + subfolder+ "/_slash_vectornav_slash_IMU.csv")
-    joystick_data = extract_joystick_data(subfolder)
-    velocities = joystick_data[1]
-    # start, end, starti, endi = find_start_and_end_time(joystick_data[0], joystick_data[1])
-    # print("start: ", start, " end: ", end)
+    
+    joystick_times, velocities, rot_vel = extract_joystick_data(subfolder)
     start = 0
-    end = min(imu_data[0][-1], joystick_data[0][-1])
-    time_points = np.linspace(start + 2, end, 3800)
+    end_time = int(min(imu_data[0][-1], joystick_times[-1]))
+    # time_points = np.linspace(start + 2, end, 3800)
+    time_points = np.linspace(0, end_time, end_time * 20 + 1)
+
     joystick = []
     executed = []
-    imu_accel_gyro = []
     for t in time_points:
-        jv = get_value_at_time(t, joystick_data[0], velocities)
-        jav = get_value_at_time(t, joystick_data[0], joystick_data[2])
+        jv = get_value_at_time(t, joystick_times, velocities)
+        jav = get_value_at_time(t, joystick_times, rot_vel)
         joystick.append([jv,jav])
-        t_av = get_value_at_time(t+imu_delay, imu_data[0], imu_data[1])
+        t_av = get_value_at_time(t + imu_delay, imu_data[0], imu_data[1])
         executed.append([t_av])
     
     training_data = pd.DataFrame()
