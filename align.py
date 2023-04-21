@@ -47,9 +47,7 @@ def write_train_data(imu_delay, subfolder):
     joystick_times, velocities, rot_vel = extract_joystick_data(subfolder)
     start = 0
     end_time = int(min(imu_data[0][-1], joystick_times[-1]))
-    # time_points = np.linspace(start + 2, end, 3800)
     time_points = np.linspace(0, end_time, end_time * 20 + 1)
-
     joystick = []
     executed = []
     for t in time_points:
