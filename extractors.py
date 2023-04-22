@@ -22,7 +22,7 @@ import math
 
 normal_speed = 1.0
 turbo_speed = 0.0
-accel_limit = 6.0
+accel_limit = 3.0
 maxTurnRate = 0.25
 commandInterval = 1.0/20
 speed_to_erpm_gain = 5171

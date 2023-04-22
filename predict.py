@@ -28,6 +28,8 @@ outputs = []
 correct = []
 time = []
 
+
+
 # iterate over all training data, and make predictions accordingly.
 for i in range(len(data_train)):
     time.append(i)
@@ -35,66 +37,24 @@ for i in range(len(data_train)):
     v = d[0]
     av = d[1]
     true_av = d[2]
-    joystick_v = v / 6
-    ground_truth_av = true_av / 4
-    input = torch.FloatTensor([joystick_v, ground_truth_av])
+    input = torch.FloatTensor([v, true_av])
     with torch.no_grad():
         output = model(input)
-    
     print("------------------------------------------------")
-    print("Our Input:", torch.FloatTensor([joystick_v, ground_truth_av]))
-    print("Our velocity:", joystick_v * 6)
-    print("Our Output: ", output.item() * 4)
+    print("Our Input:", torch.FloatTensor([v, true_av]))
+    print("Our Velocity:", output.item())
     print("Correct Output:", av)
     print("-------------------------------------------------")
 
     correct.append(av)
-    outputs.append(output.item() * 4)
+    outputs.append(output.item())
 
 inputs = torch.FloatTensor(correct)
 outputs = torch.FloatTensor(outputs)
 
 fig, ax = plt.subplots()
 ax.plot(time, outputs, label='Output')
-ax.plot(time, correct, label='Correct Output')
-ax.legend()
-ax.set_xlabel('Time')
-ax.set_ylabel('Predicted Joystick AV and Actual Joystick AV')
-plt.show()
-
-outputs = []
-correct = []
-time = []
-
-# iterate over testing data
-for i in range(len(data_test)):
-    time.append(i)
-    d = data_test[i]
-    v = d[0]
-    av = d[1]
-    true_av = d[2]
-    joystick_v = v / 6
-    ground_truth_av = true_av / 4
-    input = torch.FloatTensor([joystick_v, ground_truth_av])
-    with torch.no_grad():
-        output = model(input)
-    
-    print("------------------------------------------------")
-    print("Our Input:", torch.FloatTensor([joystick_v, ground_truth_av]))
-    print("Our velocity:", joystick_v * 6)
-    print("Our Output: ", output.item() * 4)
-    print("Correct Output:", av)
-    print("-------------------------------------------------")
-
-    correct.append(av)
-    outputs.append(output.item() * 4)
-
-inputs = torch.FloatTensor(correct)
-outputs = torch.FloatTensor(outputs)
-
-fig, ax = plt.subplots()
-ax.plot(time, outputs, label='Output')
-ax.plot(time, correct, label='Correct Output')
+ax.plot(time, inputs, label='Correct Output')
 ax.legend()
 ax.set_xlabel('Time')
 ax.set_ylabel('Predicted Joystick AV and Actual Joystick AV')

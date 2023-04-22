@@ -58,9 +58,9 @@ if __name__ == '__main__':
             joystick_av_tens = torch.FloatTensor(joystick_av[i:min(i + batch_size, N_train)])
             true_av_tens = torch.FloatTensor(true_av[i:min(i + batch_size, N_train)])
             
-            joystick_v_tens = torch.clamp(joystick_v_tens, 0, 6) / 6
-            joystick_av_tens = torch.clamp(joystick_av_tens, -4, 4) / 4
-            true_av_tens = torch.clamp(true_av_tens, -4, 4) / 4
+            # joystick_v_tens = torch.clamp(joystick_v_tens, 0, 4) / 4
+            # joystick_av_tens = torch.clamp(joystick_av_tens, -4, 4) / 4
+            # true_av_tens = torch.clamp(true_av_tens, -4, 4) / 4
 
             jv = joystick_v_tens.view(-1, 1)
             jav = joystick_av_tens.view(-1, 1)

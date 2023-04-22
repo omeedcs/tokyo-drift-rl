@@ -26,5 +26,4 @@ class IKDModel(nn.Module):
         x = F.relu(self.l1(input))
         x = F.relu(self.l2(x))
         x = self.correction(x)
-        x = torch.tanh(x)
         return x
