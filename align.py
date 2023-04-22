@@ -63,7 +63,6 @@ def write_train_data(imu_delay, subfolder):
     # We will give it joystick velocity for now and use that as the ground truth velocity.
     # To do this, we can use extract joystick data function and use the velocity data.
     training_data["executed"] = list(executed) #probably correct
-    # training_data["imu"] = list(imu_accel_gyro)
     data_file = "./dataset/ikddata2.csv"
     training_data.to_csv(data_file)
 

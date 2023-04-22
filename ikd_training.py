@@ -24,18 +24,17 @@ This neural network is a simple neural network with 2 hidden layers.
 class IKDModel(nn.Module):
     def __init__(self, dim_input, dim_output):
         super(IKDModel, self).__init__()
-        self.l1 = nn.Linear(2, 32)
+        self.l1 = nn.Linear(dim_input, 32)
         self.l2 = nn.Linear(32, 32)
         self.correction = nn.Linear(32, dim_output)
 
     def forward(self, input):
-
         x = F.relu(self.l1(input))
         x = F.relu(self.l2(x))
         x = self.correction(x)
         x = torch.tanh(x)
         return x
-    
+
 if __name__ == '__main__':
 
     # NOTE: TRAINING 
@@ -43,15 +42,7 @@ if __name__ == '__main__':
     data = pd.read_csv(data_name)
     joystick = np.array([eval(i) for i in data["joystick"]])
     executed = np.array([eval(i) for i in data["executed"]])
-    # print("joystick", joystick.shape)
-    # print("executed", executed.shape)
     data = np.concatenate((joystick, executed), axis = 1)
-
-    
-    # NOTE: do we need?
-    # imu_mean = np.mean(data[:,2:], axis=0) # angular mean 0.01572 0.11090 0.24443 accel mean 0.07645 0.21097 9.56521
-    # imu_std = np.std(data[:, 2:], axis=0) # angular std 0.69783 0.43708 1.64938 accel std 1.66148 4.50831 3.77231
-    # data[:, 2:] = (data[:, 2:] - imu_mean) / imu_std
     N = len(executed)
     N_train = N // 10 * 9
     N_test = N - N_train
@@ -60,10 +51,8 @@ if __name__ == '__main__':
     mask[idx_train] = False
     data_train = data[np.invert(mask),]
     data_test = data[mask,]
-
     model = IKDModel(2, 1)
     opt = torch.optim.Adam(model.parameters(), lr = 3e-4, weight_decay = 1e-3)
-    
     n_ep = 100
     batch_size = 32
 
@@ -74,18 +63,12 @@ if __name__ == '__main__':
 
         # joystick velocity
         joystick_v = data_train[idx, 0]
-        # print("joystick_v", joystick_v)
-        # print("joystick_v.shape", joystick_v.shape)
 
         # joystick angular velocity
         joystick_av = data_train[idx, 1] 
-        # print("joystick_av", joystick_av)
-        # print("joystick_av.shape", joystick_av.shape)
 
         # ground truth angular velocity
         true_av = data_train[idx, 2]
-        # print("true_av", true_av)
-        # print("true_av.shape", true_av.shape)
 
         # current epoch loss
         ep_loss = 0
@@ -105,7 +88,7 @@ if __name__ == '__main__':
             jv = joystick_v_tens.view(-1, 1)
             jav = joystick_av_tens.view(-1, 1)
             tav = true_av_tens.view(-1, 1)
-            
+
             input = torch.cat([jv, tav], dim = -1)
 
             output = model(input)
