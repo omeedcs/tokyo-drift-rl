@@ -6,7 +6,7 @@ import sys
 import math
 
 normal_speed = 1.0
-turbo_speed = 6.0
+turbo_speed = 0
 accel_limit = 6.0
 maxTurnRate = 0.25
 commandInterval = 1.0/20
