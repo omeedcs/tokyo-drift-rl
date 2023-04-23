@@ -66,7 +66,7 @@ def extract_imu_data(filename):
 def extract_joystick_data(subfolder):
     data_frame = pd.read_csv("./" + subfolder + "/_slash_joystick.csv")
 
-    turbo_speed = 5.0
+    turbo_speed = 1.0
 
     secs = data_frame["secs"].to_numpy()
     nsecs = data_frame["nsecs"].to_numpy()
@@ -85,6 +85,8 @@ def extract_joystick_data(subfolder):
 
     turbo_mode = axes[:, 2] >= 0.9
     # max_speed = turbo_speed
+
+    # NOTE: essential line in the creation of training data.
     max_speed = turbo_mode * turbo_speed + (1 - turbo_mode) * normal_speed
     speed = drive_joystick * max_speed
     steering_angle = steer_joystick * maxTurnRate
