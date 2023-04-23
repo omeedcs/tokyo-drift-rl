@@ -9,7 +9,7 @@ from extractors import extract_imu_data, extract_joystick_data, find_start_and_e
 
 # NOTE: changed to match UT Automata car.
 normal_speed = 1.0
-turbo_speed = 3.0
+turbo_speed = 6.0
 accel_limit = 6.0
 maxTurnRate = 0.25
 commandInterval = 1.0 / 20

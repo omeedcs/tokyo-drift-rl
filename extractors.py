@@ -5,31 +5,16 @@ import matplotlib.pyplot as plt
 import sys
 import math
 
-# NOTE: changed to match UT Automata car.
-# normal_speed = 1.0
-# turbo_speed = 6.0
-# accel_limit = 6.0
-# maxTurnRate = 0.25
-# commandInterval = 1.0 / 20
-# speed_to_erpm_gain = 5356
-# speed_to_erpm_offset = 180.0
-# erpm_speed_limit = 22000
-# steering_to_servo_gain = -.9015 
-# steering_to_servo_offset = 0.57 
-# servo_min = 0.05 
-# servo_max = 0.95 
-# wheelbase = 0.324
-
 normal_speed = 1.0
-turbo_speed = 0.0
-accel_limit = 3.0
+turbo_speed = 6.0
+accel_limit = 6.0
 maxTurnRate = 0.25
 commandInterval = 1.0/20
 speed_to_erpm_gain = 5171
 speed_to_erpm_offset = 180.0
 erpm_speed_limit = 22000
 steering_to_servo_gain = -0.9015
-steering_to_servo_offset = 0.553
+steering_to_servo_offset = 0.57
 servo_min = 0.05
 servo_max = 0.95
 wheelbase = 0.324
@@ -80,6 +65,7 @@ def extract_imu_data(filename):
 
 def extract_joystick_data(subfolder):
     data_frame = pd.read_csv("./"+subfolder+"/_slash_joystick.csv")
+
     turbo_speed = 6.0
 
     secs = data_frame["secs"].to_numpy()
@@ -97,10 +83,9 @@ def extract_joystick_data(subfolder):
     steer_joystick = -axes[:, 0]
     drive_joystick = -axes[:, 4]
 
-
     turbo_mode = axes[:, 2] >= 0.9
-    # max_speed = normal_speed
-    max_speed = turbo_mode * turbo_speed + (1 - turbo_mode) * normal_speed
+    max_speed = turbo_speed
+    # max_speed = turbo_mode * turbo_speed + (1 - turbo_mode) * normal_speed
     speed = drive_joystick * max_speed
     steering_angle = steer_joystick * maxTurnRate
 

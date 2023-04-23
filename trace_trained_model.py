@@ -14,13 +14,9 @@ joystick = np.array([eval(i) for i in data["joystick"]])
 executed = np.array([eval(i) for i in data["executed"]])
 data = np.concatenate((joystick, executed), axis = 1)
 
-joystick_v_tens = torch.FloatTensor([data[2560, 0]])
-joystick_av_tens = torch.FloatTensor([data[2560, 1]])
-true_av_tens = torch.FloatTensor([data[2560, 2]])
-
-joystick_v_tens = torch.clamp(joystick_v_tens, 0, 6) / 6
-joystick_av_tens = torch.clamp(joystick_av_tens, -4, 4) / 4
-true_av_tens = torch.clamp(true_av_tens, -4, 4) / 4
+joystick_v_tens = torch.FloatTensor([data[7140, 0]])
+joystick_av_tens = torch.FloatTensor([data[7140, 1]])
+true_av_tens = torch.FloatTensor([data[7140, 2]])
 
 jv = joystick_v_tens.view(-1, 1)
 jav = joystick_av_tens.view(-1, 1)
@@ -31,8 +27,9 @@ input = torch.cat([jv, tav], dim = -1)
 traced_script_module = torch.jit.trace(model, input)
 traced_script_module.save("traced_ikd_model.pt")
 output = traced_script_module(input)
+
 print(traced_script_module)
-print(joystick_v_tens * 6)
-print(joystick_av_tens * 4)
-print(true_av_tens * 4)
-print(output * 4)
+print(joystick_v_tens)
+print(joystick_av_tens)
+print(true_av_tens)
+print(output)
