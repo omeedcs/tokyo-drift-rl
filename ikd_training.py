@@ -29,9 +29,9 @@ if __name__ == '__main__':
     data_train = data[np.invert(mask),]
     data_test = data[mask,]
     model = IKDModel(2, 1)
-    opt = torch.optim.Adam(model.parameters(), lr = 3e-4, weight_decay = 1e-3)
-    n_ep = 100
-    batch_size = 32
+    opt = torch.optim.Adam(model.parameters(), lr = 1e-5, weight_decay = 1e-3)
+    n_ep = 150
+    batch_size = 64
 
     for ep in range(n_ep):
         

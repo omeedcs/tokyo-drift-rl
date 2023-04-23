@@ -29,47 +29,53 @@ import matplotlib.pyplot as plt
 # time = []
 
 
+# # # iterate over all training data, and make predictions accordingly.
+# # for i in range(len(data_train)):
+# #     time.append(i)
+# #     d = data_train[i]
+# #     v = d[0]
+# #     av = d[1]
+# #     true_av = d[2]
+# #     input = torch.FloatTensor([v, true_av])
+# #     with torch.no_grad():
+# #         output = model(input)
+# #     print("------------------------------------------------")
+# #     print("Our Input:", torch.FloatTensor([v, true_av]))
+# #     print("Our Velocity:", output.item())
+# #     print("Correct Output:", av)
+# #     print("-------------------------------------------------")
 
-# # iterate over all training data, and make predictions accordingly.
-# for i in range(len(data_train)):
-#     time.append(i)
-#     d = data_train[i]
-#     v = d[0]
-#     av = d[1]
-#     true_av = d[2]
-#     input = torch.FloatTensor([v, true_av])
-#     with torch.no_grad():
-#         output = model(input)
-#     print("------------------------------------------------")
-#     print("Our Input:", torch.FloatTensor([v, true_av]))
-#     print("Our Velocity:", output.item())
-#     print("Correct Output:", av)
-#     print("-------------------------------------------------")
+# #     correct.append(av)
+# #     outputs.append(output.item())
 
-#     correct.append(av)
-#     outputs.append(output.item())
+# # inputs = torch.FloatTensor(correct)
+# # outputs = torch.FloatTensor(outputs)
 
-# inputs = torch.FloatTensor(correct)
-# outputs = torch.FloatTensor(outputs)
-
-# fig, ax = plt.subplots()
-# ax.scatter(time, outputs, label='Output')
-# ax.scatter(time, inputs, label='Correct Output')
-# ax.legend()
-# ax.set_xlabel('Time')
-# ax.set_ylabel('Predicted Joystick AV and Actual Joystick AV')
-# plt.show()
+# # fig, ax = plt.subplots()
+# # ax.plot(time, outputs, label='Output')
+# # ax.plot(time, inputs, label='Correct Output')
+# # ax.legend()
+# # ax.set_xlabel('Time')
+# # ax.set_ylabel('Predicted Joystick AV and Actual Joystick AV')
+# # plt.show()
 
 model = IKDModel(2, 1)
 model.load_state_dict(torch.load("./ikddata2.pt"))
 # make input tensor
-radius = float(1 / 0.57)
-av = float(2.0 / radius)
-input = torch.FloatTensor([2.0, av])
-# make prediction
+curvature = 0.8
+velocity = 2.0
+# radius can be found by taking the reciprocal of the curvature (radius = 1/curvature).
+# radius = float(1 / curvature)
+# angular velocity: w = v / r
+angular_velocity = curvature * velocity
+input = torch.FloatTensor([velocity, angular_velocity])
 with torch.no_grad():
     output = model(input)
+new_av = output.item()
+new_curvature = float(new_av / velocity)
 print("------------------------------------------------")
 print("Our Input:", input)
-print("Our Angular Velocity Prediction:", output.item() / radius)
+print("Our Angular Velocity Correction:", output.item())
+print("Original Curvature:", curvature)
+print("Our Curvature Prediction:", new_curvature)
 print("-------------------------------------------------")
