@@ -66,7 +66,7 @@ def extract_imu_data(filename):
 def extract_joystick_data(subfolder):
     data_frame = pd.read_csv("./" + subfolder + "/_slash_joystick.csv")
 
-    turbo_speed = 1.0
+    turbo_speed = 5.0
 
     secs = data_frame["secs"].to_numpy()
     nsecs = data_frame["nsecs"].to_numpy()

@@ -15,7 +15,7 @@ data = data.reset_index(drop = True)
 data = data.drop(columns=["Unnamed: 0"])
 
 # extensive shuffling since there are multiple merges. 
-data = data.sample(frac=1).reset_index(drop=True)
+# data = data.sample(frac=1).reset_index(drop=True)
 
 # save merged csv
 data.to_csv("./dataset/ikddata2.csv")
