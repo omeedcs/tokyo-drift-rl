@@ -121,3 +121,109 @@ ax.set_xlabel('Time')
 ax.set_ylabel('Angular Velocity')
 plt.show()
 
+"""
+Section #2: Histogram bin the curvatures to see the diversity of the data.
+"""
+curvatures = []
+
+for i, row in enumerate(data_1):
+    velocity = row[0]
+    angular_velocity = row[1]
+    true_angular_velocity = row[2]
+
+    # get the curvature
+    curvature = angular_velocity / velocity
+    if curvature > 0.0:
+        curvatures.append(curvature)
+    else:
+        curvatures.append(0.0)
+
+# we can control number of bins with num!
+bin_ranges = np.linspace(min(curvatures), max(curvatures), num=4)  
+hist, bin_edges = np.histogram(curvatures, bins=bin_ranges)
+
+# Plot the histogram
+plt.figure(figsize=(10, 5))
+plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="k", align="edge")
+plt.xlabel("Curvature")
+plt.ylabel("Frequency")
+plt.title("Curvature Histogram of 1.0 m/s")
+plt.show()
+
+curvatures = []
+
+for i, row in enumerate(data_2):
+    velocity = row[0]
+    angular_velocity = row[1]
+    true_angular_velocity = row[2]
+
+    # get the curvature
+    curvature = angular_velocity / velocity
+    if curvature > 0.0:
+        curvatures.append(curvature)
+    else:
+        curvatures.append(0.0)
+
+# we can control number of bins with num!
+bin_ranges = np.linspace(min(curvatures), max(curvatures), num=4)
+hist, bin_edges = np.histogram(curvatures, bins=bin_ranges)
+
+# Plot the histogram
+plt.figure(figsize=(10, 5))
+plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="k", align="edge")
+plt.xlabel("Curvature")
+plt.ylabel("Frequency")
+plt.title("Curvature Histogram of 2 m/s")
+plt.show()
+
+curvatures = []
+
+for i, row in enumerate(data_3):
+    velocity = row[0]
+    angular_velocity = row[1]
+    true_angular_velocity = row[2]
+
+    # get the curvature
+    curvature = angular_velocity / velocity
+    if curvature > 0.0:
+        curvatures.append(curvature)
+    else:
+        curvatures.append(0.0)
+
+# we can control number of bins with num!
+bin_ranges = np.linspace(min(curvatures), max(curvatures), num=4)
+hist, bin_edges = np.histogram(curvatures, bins=bin_ranges)
+
+# Plot the histogram
+plt.figure(figsize=(10, 5))
+plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="k", align="edge")
+plt.xlabel("Curvature")
+plt.ylabel("Frequency")
+plt.title("Curvature Histogram of 3 m/s")
+plt.show()
+
+curvatures = []
+
+for i, row in enumerate(data_4):
+    velocity = row[0]
+    angular_velocity = row[1]
+    true_angular_velocity = row[2]
+
+    # get the curvature
+    curvature = angular_velocity / velocity
+    if curvature > 0.0:
+        curvatures.append(curvature)
+    else:
+        curvatures.append(0.0)
+
+# we can control number of bins with num!
+bin_ranges = np.linspace(min(curvatures), max(curvatures), num=4)
+hist, bin_edges = np.histogram(curvatures, bins=bin_ranges)
+
+# Plot the histogram
+plt.figure(figsize=(10, 5))
+plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="k", align="edge")
+plt.xlabel("Curvature")
+plt.ylabel("Frequency")
+plt.title("Curvature Histogram of 4 m/s")
+plt.show()
