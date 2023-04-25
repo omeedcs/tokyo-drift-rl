@@ -1,25 +1,29 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import sys
 
 # read the CSV file
-df = pd.read_csv('ikddata2.csv')
+data = pd.read_csv('./dataset/drift_with_cone.csv')
 
-# extract the joystick values
-joystick = df['executed'].apply(lambda x: x.strip('[]').split(', ')).tolist()
+joystick = np.array([eval(i) for i in data["joystick"]])
+executed = np.array([eval(i) for i in data["executed"]])
+data = np.concatenate((joystick, executed), axis = 1)
 
-# extract the linear velocity and angular velocity values
-linear_velocity = [float(j[0]) for j in joystick]
-# angular_velocity = [float(j[1]) for j in joystick]
+linear_velocity = data[:, 0]
+angular_velocity = data[:, 1]
+executed = data[:, 2]
+
+print(executed[0])
 
 # generate a time array based on the number of records
 time = range(len(joystick))
 
 # plot the linear velocity and angular velocity against time
-fig, ax = plt.subplots(2, 1, figsize=(8, 8))
-ax[0].plot(time, linear_velocity)
-ax[0].set_xlabel('Time')
-ax[0].set_ylabel('IMU Angular Velocity')
-ax[1].plot(time, linear_velocity)
-ax[1].set_xlabel('Time')
-ax[1].set_ylabel('Angular Velocity')
+fig, ax = plt.subplots(figsize=(8, 8))
+ax.plot(time, angular_velocity, label='Commanded Angular Velocity')
+ax.plot(time, executed, label='True Angular Velocity Velocity')
+ax.legend()
+ax.set_xlabel('Time')
+ax.set_ylabel('Angular Velocity')
 plt.show()

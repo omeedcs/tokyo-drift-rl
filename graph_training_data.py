@@ -15,7 +15,7 @@ from ikd_training import IKDModel
 import matplotlib.pyplot as plt
 
 # load in ikd data
-data_name = './dataset/ikddata2.csv'
+data_name = './dataset/drift_with_cone.csv'
 
 data = pd.read_csv(data_name)
 
