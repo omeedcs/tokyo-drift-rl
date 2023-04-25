@@ -122,7 +122,7 @@ for i, row in enumerate(data_4):
 # plot the linear velocity and angular velocity against time
 fig, ax = plt.subplots(figsize=(8, 8))
 ax.plot(time, angular_velocity, label='Commanded Angular Velocity')
-ax.plot(time, true_angular_velocity, label='True Angular Velocity Velocity')
+ax.plot(time, true_angular_velocity, label='True Angular Velocity')
 ax.legend()
 ax.set_xlabel('Time')
 ax.set_ylabel('Angular Velocity')
@@ -252,6 +252,7 @@ plt.xlabel("Curvature")
 plt.ylabel("Frequency")
 plt.title("Curvature Histogram of 4 m/s")
 plt.show()
+
 curvatures = []
 
 for i, row in enumerate(data_5):
@@ -278,4 +279,86 @@ plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="k", align="ed
 plt.xlabel("Curvature")
 plt.ylabel("Frequency")
 plt.title("Curvature Histogram of 5 m/s")
+plt.show()
+
+"""
+Merging and binning curvatures...
+"""
+turn_with_1 = './simple-turning-data/turn_with_1.0.csv'
+turn_with_2 = './simple-turning-data/turn_with_2.0.csv'
+turn_with_3 = './simple-turning-data/turn_with_3.0.csv'
+turn_with_4 = './simple-turning-data/turn_with_4.0.csv'
+turn_with_5 = './simple-turning-data/turn_with_5.0.csv'
+
+turn_with_1 = pd.read_csv(turn_with_1)
+turn_with_2 = pd.read_csv(turn_with_2)
+turn_with_3 = pd.read_csv(turn_with_3)
+turn_with_4 = pd.read_csv(turn_with_4)
+turn_with_5 = pd.read_csv(turn_with_5)
+
+# rewrite concat 
+data = pd.concat([turn_with_1, turn_with_2, turn_with_3, turn_with_4, turn_with_5], axis = 0)
+data = data.reset_index(drop = True)
+data = data.drop(columns=["Unnamed: 0"])
+
+# save merged csv
+data.to_csv("./simple-turning-data/merged-turning-data.csv")
+
+path = "./simple-turning-data/merged-turning-data.csv"
+
+data = pd.read_csv(path)
+
+# get joystick and velocity data
+joystick = np.array([eval(i) for i in data["joystick"]])
+executed = np.array([eval(i) for i in data["executed"]])
+
+# concatenate joystick and executed data
+data = np.concatenate((joystick, executed), axis = 1)
+
+curvatures = []
+
+for i, row in enumerate(data):
+    velocity = row[0]
+    angular_velocity = row[1]
+    true_angular_velocity = row[2]
+
+    # get the curvature
+    if velocity == 0.0:
+        curvatures.append(0.0)
+    else:
+        curvature = angular_velocity / velocity
+        curvatures.append(curvature)
+
+# we can control number of bins with num!
+bin_ranges = np.linspace(min(curvatures), max(curvatures), num=6)
+hist, bin_edges = np.histogram(curvatures, bins=bin_ranges)
+
+# Plot the histogram
+plt.figure(figsize=(10, 5))
+plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="k", align="edge")
+plt.xlabel("Curvature")
+plt.ylabel("Frequency")
+plt.title("Curvature Histogram of 1.0 to 5.0 m/s")
+plt.show()
+
+# bin velocities
+velocities = []
+
+for i, row in enumerate(data):
+    velocity = row[0]
+    angular_velocity = row[1]
+    true_angular_velocity = row[2]
+
+    velocities.append(velocity)
+
+# we can control number of bins with num!
+bin_ranges = np.linspace(min(velocities), max(velocities), num=10)
+hist, bin_edges = np.histogram(velocities, bins=bin_ranges)
+
+# Plot the histogram
+plt.figure(figsize=(10, 5))
+plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="k", align="edge")
+plt.xlabel("Velocity")
+plt.ylabel("Frequency")
+plt.title("Velocity Histogram of 1.0 to 5.0 m/s")
 plt.show()
