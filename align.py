@@ -30,7 +30,6 @@ def write_train_data(imu_delay, subfolder):
         executed.append([t_av])
     training_data = pd.DataFrame()
     training_data["joystick"] = list(joystick)
-
     training_data["executed"] = list(executed)
     data_file = "./dataset/ikddata2.csv"
     training_data.to_csv(data_file)
@@ -67,13 +66,17 @@ def align(subfolder):
                 optimal_error_imu = error
                 optimal_delay_imu = delay
                 best_imu_w = imu_w
-
-    print(subfolder +" imu delay:", optimal_delay_imu)
     return optimal_delay_imu
 
 if __name__ == "__main__":
 
+    # delays recorded:
+    # Turn with 1.0 -> .1759
+    # Turn with 2.0 -> 0.1779
+    # Turn with 3.0 -> .1899
+    # Turn with 4.0 -> 0.20599999999999996
+    # Turn with 5.0 -> 0.19399
     subfolder = "ikddata2"
     imu_delay = align(subfolder)
     print("imu delay:", imu_delay)
-    write_train_data(imu_delay,"ikddata2")
+    write_train_data(imu_delay, "ikddata2")
