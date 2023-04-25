@@ -23,7 +23,6 @@ for i, row in enumerate(data):
     time.append(i)
     velocities.append(row[0])
     angular_velocities.append(row[1])
-    print(row[2])
     true_angular_velocities.append(row[2])
 
     velocity = row[0]
@@ -53,6 +52,15 @@ plt.ylabel("True Angular Velocity")
 plt.title("True Angular Velocity vs. Time")
 plt.show()
 
+plt.plot(time, curvatures)
+plt.xlabel("Time")
+plt.ylabel("Curvature")
+plt.title("Curvature vs. Time")
+plt.show()
+
+
+print(max(curvatures))
+print(min(curvatures))
 # we can control number of bins with num!
 bin_ranges = np.linspace(min(curvatures), max(curvatures), num=8)
 hist, bin_edges = np.histogram(curvatures, bins=bin_ranges)
