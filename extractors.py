@@ -38,7 +38,7 @@ This function extracts the joystick data from its respective CSV file.
 """
 def extract_joystick_data(subfolder):
     data_frame = pd.read_csv("./" + subfolder + "/_slash_joystick.csv")
-    turbo_speed = 2.0
+    turbo_speed = 5.0
     secs = data_frame["secs"].to_numpy()
     nsecs = data_frame["nsecs"].to_numpy()
     joystick_times = secs + nsecs / 1e9 - secs[0]

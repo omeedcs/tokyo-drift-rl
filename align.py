@@ -74,8 +74,8 @@ if __name__ == "__main__":
     # Turn with 1.0 -> .1759
     # Turn with 2.0 -> 0.1779
     # Turn with 3.0 -> .1899
-    # Turn with 4.0 -> 0.20599999999999996
-    # Turn with 5.0 -> 0.19399
+    # Turn with 4.0 -> 0.20199999999999996
+    # Turn with 5.0 -> 0.20199999999999996
     subfolder = "ikddata2"
     imu_delay = align(subfolder)
     print("imu delay:", imu_delay)
