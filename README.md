@@ -27,13 +27,3 @@ $$f_{\theta}^{+}: (x, z') \rightarrow {NN} \rightarrow z $$
 $$(x, z) \rightarrow f^{-1} \rightarrow u_{z}$$
 
 At training time, we feed two inputs into our neural network architecture, which is joystick velocity and ground truth angular velocity from the IMU on the vehicle. The output of this model is the predicted joystick angular velocity. The learned model is our learned function approximator, which is then used as test time as the inverse kinodynamic model to give us our desired control, a corrected angular velocity for the joystick $u_{z}$ that gets us closer to the observation in the real world, $z'$.
-
-## Some Images and Charts
-
-![image](https://user-images.githubusercontent.com/61725820/234667269-ad6f7835-d1ec-42be-9366-d9f372749c2d.png)
-
-![image](https://user-images.githubusercontent.com/61725820/234667326-d18fb78d-0a21-4522-aaa0-1037f4746708.png)
-
-
-
-
