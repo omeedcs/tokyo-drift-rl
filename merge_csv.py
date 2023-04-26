@@ -63,6 +63,5 @@ data = data.drop(columns=["Unnamed: 0.2", "Unnamed: 0.1", "Unnamed: 0"])
 # drop the unnamed columns
 data = data.drop(columns=["Unnamed: 0.3"])
 
-
 # save merged csv
 data.to_csv("./dataset/ikddata2.csv")
