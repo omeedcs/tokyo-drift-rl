@@ -12,18 +12,20 @@ This work has the potential of becoming a stepping stone in finding the most eff
 
 ## Problem Formulation
 
-Let us denote $x$ as the linear velocity of the joystick, $z$ as the angular velocity of the joystick, and $z'$ as the angular velocity measured off of the IMU unit on the vehicle.
+We denote $x$ as the linear velocity of the joystick, $z$ as the angular velocity of the joystick, and $z'$ as the angular velocity measured off of the IMU unit on the vehicle. 
 
-In the paper that inspired our work, the goal, generally, is to learn the function $f_{\theta}^{+}$ given the onboard inertial observations. More specifically, the paper formulates the function below:
+In the paper that inspired our work, the goal, generally, is to learn the function $f_{\theta}^{+}$ given the onboard inertial observations. More specifically, the paper formulates the function below: 
 
-f_{\theta}^{+}(\Delta{x}, x, y) ≈ f^{-1}(\Delta{x}, x, y)
+$$f_{\theta}^{+}(\Delta{x}, x, y) \approx f^{-1}(\Delta{x}, x, y)$$
 
-We can denote $x$ as the linear velocity of the joystick, $z$ as the angular velocity of the joystick, and $z'$ as the angular velocity measured by the IMU unit on the vehicle. We will denote our desired control input as $u_{z}$.
+We can denote $x$ as the linear velocity of the joystick, $z$ as the angular velocity of the joystick, and $z'$ as the angular velocity measured by the IMU unit on the vehicle. We will denote our desired control input as $u_{z}$. 
 
 Our goal is to learn the function approximator $f_{\theta}^{+}$ based on the onboard inertial observations $z'$. $f_{\theta}^{+}$ then is used as our inverse kinodynamic model during test-time, in which it outputs our desired control input, $u_{z}$ to get us close to $z'$.
 
-f_{\theta}^{+}: (x, z') → NN → z
-(x, z) → f^{-1} → u_{z}
+\begin{gather*}
+f_{\theta}^{+}: (x, z') \rightarrow {NN} \rightarrow z\\
+(x, z) \rightarrow f^{-1} \rightarrow u_{z}
+\end{gather*}
 
 At training time, we feed two inputs into our neural network architecture, which is joystick velocity and ground truth angular velocity from the IMU on the vehicle. The output of this model is the predicted joystick angular velocity. The learned model is our learned function approximator, which is then used as test time as the inverse kinodynamic model to give us our desired control, a corrected angular velocity for the joystick $u_{z}$ that gets us closer to the observation in the real world, $z'$.
 
