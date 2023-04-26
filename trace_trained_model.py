@@ -14,9 +14,9 @@ joystick = np.array([eval(i) for i in data["joystick"]])
 executed = np.array([eval(i) for i in data["executed"]])
 data = np.concatenate((joystick, executed), axis = 1)
 
-joystick_v_tens = torch.FloatTensor([data[31444, 0]])
-joystick_av_tens = torch.FloatTensor([data[31444, 1]])
-true_av_tens = torch.FloatTensor([data[31444, 2]])
+joystick_v_tens = torch.FloatTensor([data[62357, 0]])
+joystick_av_tens = torch.FloatTensor([data[62357, 1]])
+true_av_tens = torch.FloatTensor([data[62357, 2]])
 
 jv = joystick_v_tens.view(-1, 1)
 jav = joystick_av_tens.view(-1, 1)

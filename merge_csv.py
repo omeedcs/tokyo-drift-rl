@@ -55,12 +55,6 @@ data = data.drop('curvature', axis=1)
 # save the updated data as CSV
 data.to_csv("./dataset/ikddata2.csv")
 
-# remove all unnamed columns:
-# ,Unnamed: 0.2,Unnamed: 0.1,Unnamed: 0,joystick,executed
-# 0,0,0,0,"[3.319312829336873, -2.6159250462237984]",[-1.187263675526031]
-# 1,1,1,1,"[3.0, -1.583074398059948]",[0.14029252258820338]
-# 2,2,2,2,"[0.9794304966926575, -0.5103886674296384]",[-0.49204727475277177]
-
 # load the updated, cleaned data from CSV
 data = pd.read_csv("./dataset/ikddata2.csv")
 # drop the unnamed columns
