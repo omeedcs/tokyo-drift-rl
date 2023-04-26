@@ -70,7 +70,7 @@ plt.figure(figsize=(10, 5))
 plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="k", align="edge")
 plt.xlabel("Curvature")
 plt.ylabel("Frequency")
-plt.title("Curvature Histogram of Loose Drifting Setup")
+plt.title("Curvature Histogram")
 plt.show()
 
 
