@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-path = './dataset/ikddata2.csv'
+path = './dataset/tight_cw.csv'
 data = pd.read_csv(path)
 
 # get joystick and velocity data
@@ -80,3 +80,5 @@ ax.legend()
 ax.set_xlabel('Time')
 ax.set_ylabel('Angular Velocity')
 plt.show()
+
+model = (2, 1) 
