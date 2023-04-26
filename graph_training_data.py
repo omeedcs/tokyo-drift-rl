@@ -37,8 +37,6 @@ for i, row in enumerate(data):
         curvatures.append(curvature)
 
 
-
-
 plt.plot(time, angular_velocities)
 plt.xlabel("Time")
 plt.ylabel("Angular Velocity")
