@@ -3,8 +3,8 @@ Evaluation metrics for Inverse Kinodynamic Model.
 Implements metrics specific to autonomous vehicle drifting tasks.
 """
 import numpy as np
-import torch
-from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
+from typing import Optional, Dict, List, Tuple
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 

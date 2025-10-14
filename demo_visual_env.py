@@ -71,6 +71,9 @@ def demo_keyboard_control(env):
     print("  ESC: Quit")
     print("="*60)
     
+    # Initialize pygame before starting
+    pygame.init()
+    
     obs, info = env.reset()
     episode_reward = 0
     steps = 0
@@ -80,6 +83,9 @@ def demo_keyboard_control(env):
     
     running = True
     clock = pygame.time.Clock()
+    
+    # Render once to initialize the display
+    env.render()
     
     while running:
         # Handle events
