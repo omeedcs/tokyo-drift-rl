@@ -17,6 +17,9 @@ register(
 )
 
 # Import main environment class
-from drift_gym.envs.drift_car_env import DriftCarEnv
+from drift_gym.envs.drift_car_env_advanced import AdvancedDriftCarEnv
 
-__all__ = ["DriftCarEnv", "__version__"]
+# Alias for backward compatibility
+DriftCarEnv = AdvancedDriftCarEnv
+
+__all__ = ["DriftCarEnv", "AdvancedDriftCarEnv", "__version__"]

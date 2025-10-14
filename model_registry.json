@@ -1,0 +1,65 @@
+{
+  "ikd_corrected": {
+    "name": "ikd_corrected",
+    "model_type": "ikd",
+    "path": "trained_models/ikd_corrected.pt",
+    "timestamp": "2025-10-14T02:46:32.285211",
+    "parameters": null,
+    "performance": null,
+    "description": null
+  },
+  "ikd_quick_test": {
+    "name": "ikd_quick_test",
+    "model_type": "ikd",
+    "path": "trained_models/ikd_quick_test.pt",
+    "timestamp": "2025-10-14T02:33:00.508940",
+    "parameters": null,
+    "performance": null,
+    "description": null
+  },
+  "ikd_tracking": {
+    "name": "ikd_tracking",
+    "model_type": "ikd",
+    "path": "trained_models/ikd_tracking.pt",
+    "timestamp": "2025-10-14T02:44:55.950561",
+    "parameters": null,
+    "performance": null,
+    "description": null
+  },
+  "ikd_final": {
+    "name": "ikd_final",
+    "model_type": "ikd",
+    "path": "trained_models/ikd_final.pt",
+    "timestamp": "2025-10-14T02:47:12.727227",
+    "parameters": null,
+    "performance": null,
+    "description": null
+  },
+  "ikd_model": {
+    "name": "ikd_model",
+    "model_type": "ikd",
+    "path": "trained_models/ikd_model.pt",
+    "timestamp": "2025-10-14T02:41:32.046740",
+    "parameters": null,
+    "performance": null,
+    "description": null
+  },
+  "sac_loose_2": {
+    "name": "sac_loose_2",
+    "model_type": "sac",
+    "path": "dc_saves/sac_loose_2",
+    "timestamp": "2025-10-14T03:01:13.785168",
+    "parameters": null,
+    "performance": null,
+    "description": null
+  },
+  "sac_loose_0": {
+    "name": "sac_loose_0",
+    "model_type": "sac",
+    "path": "dc_saves/sac_loose_0",
+    "timestamp": "2025-10-14T02:56:30.503164",
+    "parameters": null,
+    "performance": null,
+    "description": null
+  }
+}

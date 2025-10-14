@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'katex/dist/katex.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  
+  body {
+    @apply bg-white text-gray-900 antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+}
+
+@layer components {
+  .section {
+    @apply py-16 md:py-24;
+  }
+
+  .container-custom {
+    @apply max-w-6xl mx-auto px-6 md:px-8;
+  }
+
+  .card {
+    @apply bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300;
+  }
+
+  .btn-primary {
+    @apply bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-800 transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-black px-6 py-3 rounded-md font-medium border border-gray-300 hover:bg-gray-50 transition-colors duration-200;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  /* Math equations */
+  .katex {
+    @apply text-base md:text-lg;
+  }
+
+  .katex-display {
+    @apply my-6;
+  }
+
+  /* Hover tooltips for math terms */
+  .math-term {
+    @apply relative inline-block border-b border-dotted border-gray-400 cursor-help;
+  }
+
+  .math-term .tooltip {
+    @apply invisible absolute z-10 w-64 p-2 text-xs text-white bg-gray-900 rounded-lg opacity-0 transition-opacity duration-300;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -128px;
+  }
+
+  .math-term:hover .tooltip {
+    @apply visible opacity-100;
+  }
+}

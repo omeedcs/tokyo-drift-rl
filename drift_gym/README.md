@@ -1,13 +1,16 @@
 # 🏎️ Drift Gym - Autonomous Vehicle Drifting Environment
 
-A professional Gymnasium environment for autonomous vehicle drifting research, based on F1/10 scale vehicle dynamics.
+A **research-grade** Gymnasium environment for autonomous vehicle drifting research, based on F1/10 scale vehicle dynamics.
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Gymnasium](https://img.shields.io/badge/gymnasium-0.29+-green.svg)](https://gymnasium.farama.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+> **🔬 NEW: Research-Grade Features!** See [README_ADVANCED.md](README_ADVANCED.md) for sensor noise models, perception pipeline, latency modeling, 3D dynamics, and moving obstacles.
+
 ## Features
 
+### 🎯 Core Features
 - ✅ **Gymnasium-compliant** API for seamless RL integration
 - 🎮 **Real-time visualization** with PyGame
 - 🔧 **Configurable scenarios** (loose, tight, custom)
@@ -16,6 +19,15 @@ A professional Gymnasium environment for autonomous vehicle drifting research, b
 - 📹 **Video recording** support (rgb_array mode)
 - 🎯 **Multiple difficulty levels**
 - 📦 **Easy installation** via pip
+
+### 🔬 Research-Grade Features (NEW!)
+- 🛰️ **Sensor noise models** (GPS drift, IMU bias)
+- 👁️ **Perception pipeline** (false positives/negatives, tracking)
+- ⏱️ **Latency modeling** (100ms sensor-compute-actuation delay)
+- 🚗 **3D vehicle dynamics** (roll, pitch, weight transfer)
+- 🚙 **Moving obstacles** (traffic agents with realistic behaviors)
+
+**→ [See Advanced Features Documentation](README_ADVANCED.md)**
 
 ## Installation
 
