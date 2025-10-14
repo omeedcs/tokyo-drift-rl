@@ -3,7 +3,7 @@ Virtual joystick and control strategies for simulation.
 """
 
 import numpy as np
-from typing import Optional, Callable, Tuple
+from typing import Optional, Callable, Tuple, List
 from enum import Enum
 
 
@@ -145,81 +145,130 @@ class VirtualJoystick:
 
 class DriftController:
     """
-    Controller for executing drift maneuvers.
+    Controller for executing drift maneuvers using trajectory tracking.
     
-    Replicates teleoperated drift sequences from the paper.
+    Uses trajectory planning + Pure Pursuit for closed-loop control.
+    Much better than the old open-loop time-based approach!
     """
     
-    def __init__(self, turbo_speed: float = 5.0):
+    def __init__(
+        self,
+        turbo_speed: float = 3.5,
+        drift_speed: float = 2.5,
+        controller_type: str = "pure_pursuit",
+        use_optimizer: bool = True
+    ):
         """
         Initialize drift controller.
         
         Args:
-            turbo_speed: Maximum speed for drift approach (m/s)
+            turbo_speed: Speed for drift approach (m/s)
+            drift_speed: Speed during drift maneuver (m/s)
+            controller_type: "pure_pursuit" or "stanley"
+            use_optimizer: Use optimization-based planning (better for tight spaces)
         """
+        from src.simulator.trajectory import DriftTrajectoryPlanner
+        from src.simulator.path_tracking import TrajectoryTracker
+        
         self.turbo_speed = turbo_speed
-        self.state = "idle"
-        self.drift_start_time = 0.0
+        self.drift_speed = drift_speed
+        self.use_optimizer = use_optimizer
+        
+        # Create planner and tracker
+        self.planner = DriftTrajectoryPlanner()
+        self.tracker = TrajectoryTracker(controller_type=controller_type)
+        self.optimizer = None  # Created on-demand
+        
+        self.trajectory_planned = False
+        self.current_x = 0.0
+        self.current_y = 0.0
+        self.current_theta = 0.0
+        self.current_velocity = 0.0
     
-    def execute_drift_ccw(
+    def plan_trajectory(
         self,
-        time: float,
-        approach_distance: float = 2.0
-    ) -> Tuple[float, float]:
+        start_pos: Tuple[float, float],
+        gate_center: Tuple[float, float],
+        gate_width: float,
+        direction: str = "ccw",
+        obstacles: Optional[List[Tuple[float, float, float]]] = None
+    ):
         """
-        Execute counter-clockwise drift maneuver.
+        Plan drift trajectory through gate.
         
         Args:
-            time: Current simulation time
-            approach_distance: Distance to travel before drift
+            start_pos: Starting position (x, y)
+            gate_center: Gate center position (x, y)
+            gate_width: Width of gate opening
+            direction: "ccw" or "cw"
+            obstacles: Optional list of (x, y, radius) obstacles
+        """
+        if self.use_optimizer and obstacles is not None:
+            # Use optimization-based planning
+            from src.simulator.trajectory_optimizer import create_adaptive_planner
+            
+            self.optimizer = create_adaptive_planner(gate_width)
+            trajectory = self.optimizer.plan_drift_trajectory(
+                start_pos=start_pos,
+                gate_pos=gate_center,
+                gate_width=gate_width,
+                obstacles=obstacles,
+                direction=direction
+            )
+        else:
+            # Use heuristic planning
+            trajectory = self.planner.plan_drift_through_gate(
+                start_pos=start_pos,
+                gate_center=gate_center,
+                gate_width=gate_width,
+                drift_direction=direction,
+                approach_speed=self.turbo_speed,
+                drift_speed=self.drift_speed
+            )
+        
+        self.tracker.set_trajectory(trajectory)
+        self.trajectory_planned = True
+        
+        print(f"[INFO] Planned drift trajectory with {len(trajectory.waypoints)} waypoints")
+    
+    def update(
+        self,
+        x: float,
+        y: float,
+        theta: float,
+        velocity: float
+    ) -> Tuple[float, float]:
+        """
+        Update controller and get commands.
+        
+        Args:
+            x: Current x position
+            y: Current y position
+            theta: Current heading
+            velocity: Current velocity
             
         Returns:
-            Tuple of (velocity, angular_velocity) commands
+            Tuple of (velocity_cmd, angular_velocity_cmd)
         """
-        # State machine for drift execution
-        if self.state == "idle":
-            # Accelerate to turbo speed
-            self.state = "accelerating"
-            self.drift_start_time = time
-            return self.turbo_speed, 0.0
+        self.current_x = x
+        self.current_y = y
+        self.current_theta = theta
+        self.current_velocity = velocity
         
-        elif self.state == "accelerating":
-            elapsed = time - self.drift_start_time
-            
-            if elapsed < 1.0:
-                # Still accelerating
-                return self.turbo_speed, 0.0
-            else:
-                # Start turning
-                self.state = "turning"
-                return self.turbo_speed, 2.0  # High angular velocity
+        if not self.trajectory_planned:
+            return 0.0, 0.0
         
-        elif self.state == "turning":
-            elapsed = time - self.drift_start_time
-            
-            if elapsed < 2.0:
-                # Cut throttle, maintain turn
-                return 2.0, 2.0
-            else:
-                # Exit drift
-                self.state = "recovering"
-                return 1.0, 0.5
-        
-        elif self.state == "recovering":
-            elapsed = time - self.drift_start_time
-            
-            if elapsed < 3.0:
-                return 1.0, 0.0
-            else:
-                self.state = "idle"
-                return 0.0, 0.0
-        
-        return 0.0, 0.0
+        # Use trajectory tracker for closed-loop control
+        return self.tracker.update(x, y, theta, velocity)
+    
+    def is_complete(self) -> bool:
+        """Check if drift maneuver is complete."""
+        return self.tracker.is_complete()
     
     def reset(self):
         """Reset drift controller state."""
-        self.state = "idle"
-        self.drift_start_time = 0.0
+        self.trajectory_planned = False
+        self.tracker.reset()
 
 
 class TrajectoryFollower:

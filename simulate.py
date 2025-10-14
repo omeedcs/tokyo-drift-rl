@@ -164,24 +164,52 @@ def run_drift_test(args, env, joystick, output_dir, test_type="loose"):
     print(f"{test_type.capitalize()} Drift Test")
     print(f"{'='*80}")
     
-    # Setup
+    # Setup environment
     if test_type == "loose":
         env.setup_loose_drift_test()
+        gate_center = (3.0, 2.13 / 2)  # Midpoint between cones
+        gate_width = 2.13
     else:
         env.setup_tight_drift_test()
+        gate_center = (3.0, 0.81 / 2)
+        gate_width = 0.81
     
-    # Use drift controller
-    drift_controller = DriftController(turbo_speed=5.0)
+    # Create drift controller with trajectory planning
+    drift_controller = DriftController(
+        turbo_speed=3.5, 
+        drift_speed=2.5,
+        use_optimizer=True  # Enable optimization for tight scenarios
+    )
+    
+    # Plan trajectory from start to gate
+    start_pos = (env.vehicle.state.x, env.vehicle.state.y)
+    
+    # Convert obstacles to format expected by optimizer
+    obstacles_list = [(obs.x, obs.y, obs.radius) for obs in env.obstacles]
+    
+    drift_controller.plan_trajectory(
+        start_pos=start_pos,
+        gate_center=gate_center,
+        gate_width=gate_width,
+        direction="ccw",
+        obstacles=obstacles_list
+    )
     
     # Run simulation
     env.start_recording()
     steps = int(args.duration / env.dt)
     
     collision_detected = False
+    success = False
     
     for i in range(steps):
-        # Get drift control
-        velocity_cmd, av_cmd = drift_controller.execute_drift_ccw(env.time, approach_distance=2.0)
+        # Get vehicle state
+        state = env.vehicle.get_state()
+        
+        # Get drift control from trajectory tracker
+        velocity_cmd, av_cmd = drift_controller.update(
+            state.x, state.y, state.theta, state.velocity
+        )
         
         # Apply IKD correction if enabled
         if args.use_ikd:
@@ -199,11 +227,16 @@ def run_drift_test(args, env, joystick, output_dir, test_type="loose"):
             print(f"  ⚠️  Collision detected at t={measurements['time']:.2f}s!")
             collision_detected = True
         
+        # Check if trajectory complete
+        if drift_controller.is_complete() and not collision_detected:
+            print(f"  ✅ Drift maneuver complete at t={measurements['time']:.2f}s!")
+            success = True
+            break
+        
         if i % 100 == 0:
             print(f"  t={measurements['time']:.2f}s | "
                   f"v={measurements['velocity']:.2f} | "
-                  f"av={measurements['angular_velocity']:.3f} | "
-                  f"state={drift_controller.state}")
+                  f"av={measurements['angular_velocity']:.3f}")
     
     env.stop_recording()
     
@@ -211,6 +244,7 @@ def run_drift_test(args, env, joystick, output_dir, test_type="loose"):
     data = env.get_recorded_data()
     
     print(f"\nResults:")
+    print(f"  Success: {'Yes ✅' if success else 'No ❌'}")
     print(f"  Collision: {'Yes ❌' if collision_detected else 'No ✅'}")
     print(f"  Final position: ({env.vehicle.state.x:.2f}, {env.vehicle.state.y:.2f})")
     
