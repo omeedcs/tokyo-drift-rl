@@ -21,6 +21,7 @@ from drift_gym.sensors import GPSSensor, IMUSensor, LatencyBuffer, SensorReading
 from drift_gym.perception import ObjectDetector, TrackingFilter, Detection, ObjectClass
 from drift_gym.dynamics import Vehicle3DDynamics, Vehicle3DState
 from drift_gym.agents import MovingAgentSimulator, AgentBehavior
+from drift_gym.estimation import ExtendedKalmanFilter, EKFState
 
 from src.simulator.environment import SimulationEnvironment
 
@@ -93,16 +94,19 @@ class AdvancedDriftCarEnv(gym.Env):
             dtype=np.float32
         )
         
-        # Observation space: Now includes uncertainty!
-        # [gps_x, gps_y, gps_x_var, gps_y_var, 
-        #  imu_yaw_rate, imu_yaw_rate_var,
-        #  imu_accel_x, imu_accel_y,
-        #  num_detections, closest_detection_x, closest_detection_y,
-        #  roll, pitch]
-        obs_dim = 13 if use_3d_dynamics else 11
+        # NEW Observation space: Task-relevant with EKF estimates
+        # Observations:
+        # [rel_goal_x, rel_goal_y, rel_goal_heading,  (3) - Task-relevant goal info
+        #  v_estimated, omega_estimated,               (2) - EKF state estimates
+        #  v_std, omega_std,                           (2) - EKF uncertainties
+        #  n_obstacles, closest_obs_x, closest_obs_y,  (3) - Perception
+        #  prev_action_v, prev_action_omega]           (2) - Action history
+        # Total: 12 dimensions (more meaningful than old 13)
+        
+        obs_dim = 12
         self.observation_space = spaces.Box(
-            low=-100.0,
-            high=100.0,
+            low=-20.0,  # More reasonable bounds
+            high=20.0,
             shape=(obs_dim,),
             dtype=np.float32
         )
@@ -111,23 +115,27 @@ class AdvancedDriftCarEnv(gym.Env):
         self.max_velocity = 4.0
         self.max_angular_velocity = 3.0
         
-        # Initialize sensors
+        # Initialize sensors (with calibrated parameters)
         if use_noisy_sensors:
             self.gps_sensor = GPSSensor(
-                noise_std=0.5,
-                drift_rate=0.01,
+                noise_std=0.3,  # Calibrated for RTK GPS
+                drift_rate=0.005,
                 update_rate=10.0,
                 seed=seed
             )
             self.imu_sensor = IMUSensor(
-                gyro_noise_std=0.01,
-                gyro_bias_std=0.001,
+                gyro_noise_std=0.0087,  # Calibrated for BMI088/MPU9250
+                gyro_bias_std=0.0017,
                 update_rate=100.0,
                 seed=seed
             )
         else:
             self.gps_sensor = None
             self.imu_sensor = None
+        
+        # Initialize Extended Kalman Filter for sensor fusion
+        self.ekf = ExtendedKalmanFilter(dt=0.05)
+        self.use_ekf = use_noisy_sensors  # Use EKF when sensors are noisy
         
         # Initialize perception pipeline
         if use_perception_pipeline:
@@ -179,6 +187,7 @@ class AdvancedDriftCarEnv(gym.Env):
         self.steps = 0
         self.episode_reward = 0.0
         self.current_time = 0.0
+        self.previous_action = np.zeros(2)  # Track previous action for observation
         
         # Scenario configuration
         if scenario == "loose":
@@ -256,6 +265,16 @@ class AdvancedDriftCarEnv(gym.Env):
         self.steps = 0
         self.episode_reward = 0.0
         self.current_time = 0.0
+        self.previous_action = np.zeros(2)
+        
+        # Reset EKF with initial state
+        if self.use_ekf:
+            state_2d = self.sim_env.vehicle.get_state()
+            initial_state = np.array([
+                state_2d.x, state_2d.y, state_2d.theta,
+                state_2d.velocity, 0.0, state_2d.angular_velocity
+            ])
+            self.ekf.reset(initial_state)
         
         observation = self._get_obs()
         info = self._get_info()
@@ -300,8 +319,15 @@ class AdvancedDriftCarEnv(gym.Env):
         if self.use_moving_agents:
             self.agent_simulator.step(dt=0.05)
         
+        # Update EKF with sensor measurements
+        if self.use_ekf:
+            self._update_ekf()
+        
         # Get observation (with noise/perception)
         observation = self._get_obs()
+        
+        # Store current action for next observation
+        self.previous_action = action.copy()
         
         # Compute reward
         reward = self._compute_reward()
@@ -319,57 +345,89 @@ class AdvancedDriftCarEnv(gym.Env):
         
         return observation, reward, terminated, truncated, info
     
-    def _get_obs(self) -> np.ndarray:
-        """
-        Get observation with realistic sensor noise and perception.
-        
-        This is the KEY difference from toy environments - the agent doesn't
-        get perfect state, it has to work with noisy sensors!
-        """
+    def _update_ekf(self):
+        """Update EKF with sensor measurements."""
         state_2d = self.sim_env.vehicle.get_state()
         
-        # GPS measurement (noisy position)
-        if self.use_noisy_sensors and self.gps_sensor:
+        # EKF prediction step
+        self.ekf.predict()
+        
+        # GPS update
+        if self.gps_sensor:
             gps_reading = self.gps_sensor.measure(
                 np.array([state_2d.x, state_2d.y]),
                 self.current_time
             )
             if gps_reading.valid:
-                gps_x, gps_y = gps_reading.data
-                gps_var_x, gps_var_y = gps_reading.variance
-            else:
-                # No GPS fix - high uncertainty!
-                gps_x, gps_y = 0.0, 0.0
-                gps_var_x, gps_var_y = 100.0, 100.0
-        else:
-            # Perfect state (toy mode)
-            gps_x, gps_y = state_2d.x, state_2d.y
-            gps_var_x, gps_var_y = 0.0, 0.0
+                self.ekf.update_gps(gps_reading.data, gps_reading.variance)
         
-        # IMU measurement (noisy angular velocity and acceleration)
-        if self.use_noisy_sensors and self.imu_sensor:
+        # IMU update
+        if self.imu_sensor:
             true_gyro = np.array([0.0, 0.0, state_2d.angular_velocity])
-            true_accel = np.array([0.0, 0.0, 9.81])  # Simplified
+            true_accel = np.array([0.0, 0.0, 9.81])
             
             imu_readings = self.imu_sensor.measure(true_gyro, true_accel, self.current_time)
             
-            imu_yaw_rate = imu_readings['gyro'].data[2]
-            imu_yaw_rate_var = imu_readings['gyro'].variance[2]
-            imu_accel_x = imu_readings['accel'].data[0]
-            imu_accel_y = imu_readings['accel'].data[1]
-        else:
-            # Perfect measurements
-            imu_yaw_rate = state_2d.angular_velocity
-            imu_yaw_rate_var = 0.0
-            imu_accel_x = 0.0
-            imu_accel_y = 0.0
+            self.ekf.update_imu(
+                imu_readings['gyro'].data[2],
+                imu_readings['accel'].data[:2],
+                np.concatenate([imu_readings['gyro'].variance[[2]], imu_readings['accel'].variance[:2]])
+            )
+    
+    def _get_obs(self) -> np.ndarray:
+        """
+        Get task-relevant observation with EKF state estimates.
         
-        # Perception pipeline (object detection)
+        NEW DESIGN: Observations are task-centric, not sensor-centric.
+        Agent receives what it needs for control, not raw sensor data.
+        
+        Observation vector (12-dim):
+        [rel_goal_x, rel_goal_y, rel_goal_heading,  # Task-relevant goal info
+         v_estimated, omega_estimated,               # EKF state estimates
+         v_std, omega_std,                           # EKF uncertainties
+         n_obstacles, closest_obs_x, closest_obs_y,  # Perception
+         prev_action_v, prev_action_omega]           # Action history
+        """
+        # Get state estimate from EKF or ground truth
+        if self.use_ekf:
+            ekf_state = self.ekf.get_state()
+            x_est = ekf_state.x
+            y_est = ekf_state.y
+            theta_est = ekf_state.theta
+            v_est = ekf_state.vx
+            omega_est = ekf_state.omega
+            pos_std, v_std, omega_std = ekf_state.uncertainty_norms
+        else:
+            # Perfect state (for baseline comparison)
+            state_2d = self.sim_env.vehicle.get_state()
+            x_est = state_2d.x
+            y_est = state_2d.y
+            theta_est = state_2d.theta
+            v_est = state_2d.velocity
+            omega_est = state_2d.angular_velocity
+            v_std = 0.0
+            omega_std = 0.0
+        
+        # Compute relative goal position in body frame
+        dx_goal = self.gate_pos[0] - x_est
+        dy_goal = self.gate_pos[1] - y_est
+        
+        # Rotate to body frame
+        cos_theta = np.cos(theta_est)
+        sin_theta = np.sin(theta_est)
+        rel_goal_x = dx_goal * cos_theta + dy_goal * sin_theta
+        rel_goal_y = -dx_goal * sin_theta + dy_goal * cos_theta
+        
+        # Compute relative heading to goal
+        angle_to_goal = np.arctan2(dy_goal, dx_goal)
+        rel_goal_heading = angle_to_goal - theta_est
+        # Normalize to [-pi, pi]
+        rel_goal_heading = np.arctan2(np.sin(rel_goal_heading), np.cos(rel_goal_heading))
+        
+        # Obstacle perception
         if self.use_perception_pipeline and self.object_detector:
             # Build list of true objects
             true_objects = []
-            
-            # Add static obstacles
             for obs in self.sim_env.obstacles:
                 true_objects.append({
                     'position': np.array([obs.x, obs.y]),
@@ -378,67 +436,59 @@ class AdvancedDriftCarEnv(gym.Env):
                     'class': ObjectClass.OBSTACLE
                 })
             
-            # Add moving agents
-            if self.use_moving_agents:
-                for agent in self.agent_simulator.agents:
-                    true_objects.append({
-                        'position': agent.position,
-                        'velocity': agent.velocity,
-                        'size': agent.size,
-                        'class': ObjectClass.VEHICLE
-                    })
-            
             # Run object detection
             detections = self.object_detector.detect_objects(
                 true_objects,
-                np.array([state_2d.x, state_2d.y]),
-                state_2d.theta
+                np.array([x_est, y_est]),
+                theta_est
             )
             
             # Update tracking
             tracks = self.tracking_filter.update(detections, dt=0.05)
             
-            # Extract closest detection
-            num_detections = len(tracks)
+            # Extract closest detection (in body frame)
+            n_obstacles = len(tracks)
             if tracks:
                 closest = min(tracks, key=lambda t: np.linalg.norm(t['position']))
-                closest_x, closest_y = closest['position']
+                closest_obs_x, closest_obs_y = closest['position']
             else:
-                closest_x, closest_y = 0.0, 0.0
+                closest_obs_x, closest_obs_y = 0.0, 0.0
         else:
-            # Perfect detection
-            num_detections = len(self.sim_env.obstacles)
+            # Perfect detection in body frame
+            n_obstacles = len(self.sim_env.obstacles)
             if self.sim_env.obstacles:
-                closest_obs = min(self.sim_env.obstacles,
-                                 key=lambda o: np.hypot(o.x - state_2d.x, o.y - state_2d.y))
-                closest_x = closest_obs.x - state_2d.x
-                closest_y = closest_obs.y - state_2d.y
+                # Find closest obstacle and transform to body frame
+                min_dist = float('inf')
+                closest_obs_x, closest_obs_y = 0.0, 0.0
+                for obs in self.sim_env.obstacles:
+                    dx = obs.x - x_est
+                    dy = obs.y - y_est
+                    dist = np.hypot(dx, dy)
+                    if dist < min_dist:
+                        min_dist = dist
+                        # Transform to body frame
+                        closest_obs_x = dx * cos_theta + dy * sin_theta
+                        closest_obs_y = -dx * sin_theta + dy * cos_theta
             else:
-                closest_x, closest_y = 0.0, 0.0
+                closest_obs_x, closest_obs_y = 0.0, 0.0
         
         # Build observation vector
-        obs = [
-            gps_x / 10.0,
-            gps_y / 10.0,
-            np.sqrt(gps_var_x) / 10.0,
-            np.sqrt(gps_var_y) / 10.0,
-            imu_yaw_rate / 3.0,
-            np.sqrt(imu_yaw_rate_var) / 3.0,
-            imu_accel_x / 5.0,
-            imu_accel_y / 5.0,
-            num_detections / 10.0,
-            closest_x / 10.0,
-            closest_y / 10.0,
-        ]
+        obs = np.array([
+            rel_goal_x / 5.0,           # Normalize by typical distance
+            rel_goal_y / 5.0,
+            rel_goal_heading / np.pi,   # Normalize angle to [-1, 1]
+            v_est / self.max_velocity,  # Normalize velocity
+            omega_est / self.max_angular_velocity,  # Normalize omega
+            v_std,                      # Already in reasonable range
+            omega_std,
+            n_obstacles / 10.0,         # Normalize count
+            closest_obs_x / 5.0,        # Normalize distance
+            closest_obs_y / 5.0,
+            self.previous_action[0],    # Already in [-1, 1]
+            self.previous_action[1]
+        ], dtype=np.float32)
         
-        # Add 3D state if enabled
-        if self.use_3d_dynamics and self.vehicle_state_3d:
-            obs.extend([
-                self.vehicle_state_3d.roll / 0.3,  # Normalize by max roll
-                self.vehicle_state_3d.pitch / 0.2,  # Normalize by max pitch
-            ])
-        
-        return np.array(obs, dtype=np.float32)
+        return obs
     
     def _compute_reward(self) -> float:
         """Compute reward - similar to base environment."""

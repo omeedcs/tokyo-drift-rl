@@ -229,10 +229,10 @@ class TrackingFilter:
             track['confidence'] *= 0.95  # Decay confidence if not updated
         
         # Associate detections to tracks
-        unmatched_detections = list(detections)
+        matched_detections = set()
         matched_tracks = set()
         
-        for detection in detections:
+        for det_idx, detection in enumerate(detections):
             best_track_idx = None
             best_distance = self.association_threshold
             
@@ -263,7 +263,10 @@ class TrackingFilter:
                 track['age'] = 0.0  # Reset age on update
                 
                 matched_tracks.add(best_track_idx)
-                unmatched_detections.remove(detection)
+                matched_detections.add(det_idx)
+        
+        # Get unmatched detections
+        unmatched_detections = [det for i, det in enumerate(detections) if i not in matched_detections]
         
         # Create new tracks for unmatched detections
         for detection in unmatched_detections:

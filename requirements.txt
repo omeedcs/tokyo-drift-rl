@@ -54,6 +54,21 @@ gradio>=4.0.0
 plotly>=5.18.0
 
 # ============================================================================
+# Research-Grade Features (for benchmarking and ablation studies)
+# ============================================================================
+# Advanced RL algorithms
+stable-baselines3>=2.0.0
+
+# Web server for live demo
+flask>=3.0.0
+flask-cors>=4.0.0
+flask-socketio>=5.3.0
+python-socketio>=5.10.0
+
+# Data analysis for experiments
+seaborn>=0.13.0
+
+# ============================================================================
 # Jake's Deep RL Algorithms (SAC Implementation)
 # ============================================================================
 # Install separately after main requirements:
