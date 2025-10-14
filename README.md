@@ -30,8 +30,10 @@ This repository implements and benchmarks three distinct control strategies for 
 | **IKD** | 51.0 | 100% | +3.8% faster | ✅ |
 | **SAC** | **27.0** | **100%** | **+49% faster** | 🚀 |
 
-![Image](/comparison_results/image.png)
 
+<p align="center">
+  <img src="comparison_results/image.png" alt="Results" width="800"/>
+</p>
 
 ### Key Metrics
 
