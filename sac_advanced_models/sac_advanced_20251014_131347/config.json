@@ -1,0 +1,27 @@
+{
+  "scenario": "loose",
+  "max_episode_steps": 400,
+  "use_noisy_sensors": false,
+  "use_perception_pipeline": false,
+  "use_latency": false,
+  "use_3d_dynamics": false,
+  "use_moving_agents": false,
+  "hidden_layers": [
+    256,
+    256
+  ],
+  "learning_rate": 0.0003,
+  "buffer_size": 100000,
+  "batch_size": 256,
+  "gamma": 0.99,
+  "tau": 0.005,
+  "alpha": 0.2,
+  "auto_tune_alpha": true,
+  "total_timesteps": 5000,
+  "warmup_steps": 1000,
+  "update_frequency": 1,
+  "save_frequency": 2000,
+  "eval_frequency": 2000,
+  "eval_episodes": 10,
+  "device": "mps"
+}

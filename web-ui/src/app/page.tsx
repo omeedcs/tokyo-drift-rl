@@ -26,7 +26,7 @@ export default function ResearchPage() {
               <Link href="#math" className="hover:text-gray-600 transition">Methods</Link>
               <Link href="#demo" className="hover:text-gray-600 transition">Demo</Link>
               <Link href="#results" className="hover:text-gray-600 transition">Results</Link>
-              <a href="https://github.com/msuv08/autonomous-vehicle-drifting" target="_blank" className="btn-primary">
+              <a href="https://github.com/omeedcs/autonomous-vehicle-drifting" target="_blank" className="btn-primary">
                 GitHub
               </a>
             </div>
@@ -68,10 +68,9 @@ export default function ResearchPage() {
                 We implement and compare multiple approaches including <strong>Soft Actor-Critic (SAC)</strong>, 
                 <strong>Inverse Kinodynamics (IKD)</strong> modeling, and hybrid control strategies. Drifting—a controlled oversteer 
                 maneuver—presents unique challenges for autonomous systems due to highly nonlinear dynamics and the need for precise 
-                coordination of steering, throttle, and braking. Our SAC-based approach achieves <strong>89.2% success rate</strong> in 
-                navigating complex drift scenarios, with robust performance across varying obstacle configurations. The system includes 
-                IMU delay augmentation for improved real-world transferability and a comprehensive simulation environment for training 
-                and evaluation.
+                coordination of steering, throttle, and braking. The system includes a research-grade Gymnasium environment (Drift Gym) 
+                with realistic sensor noise, perception errors, system latency, 3D dynamics, and moving obstacles to enable sim-to-real transfer.
+                Training is conducted on Apple M1 Max hardware using Metal Performance Shaders for GPU acceleration.
               </p>
             </div>
 
@@ -146,6 +145,78 @@ export default function ResearchPage() {
                   <strong>Key Insight:</strong> While the original IKD paper demonstrated that kinodynamic correction is possible through 
                   supervised learning, this work shows that <strong>deep RL significantly outperforms</strong> pure IKD in complex scenarios 
                   by learning to handle uncertainty and discovering novel control strategies autonomously.
+                </p>
+              </div>
+            </div>
+
+            {/* Drift Gym Features */}
+            <div className="card text-left max-w-3xl mx-auto mt-8">
+              <h3 className="text-xl font-bold mb-4">Drift Gym: Research-Grade RL Environment</h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                The simulation environment (Drift Gym) implements five advanced features for realistic sim-to-real transfer:
+              </p>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h4 className="font-bold mb-2">1. Sensor Noise Models</h4>
+                  <p className="text-sm text-gray-700 mb-2">GPS and IMU sensors with realistic noise characteristics:</p>
+                  <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                    <li>• GPS: Multipath error (0.5m std), random walk drift, measurement noise</li>
+                    <li>• IMU: Gyroscope bias (0.01 rad/s), accelerometer bias (0.05 m/s²), white noise</li>
+                    <li>• Dropout probability and variance tracking</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h4 className="font-bold mb-2">2. Perception Pipeline</h4>
+                  <p className="text-sm text-gray-700 mb-2">Object detection with realistic errors:</p>
+                  <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                    <li>• False positive rate: 5% per timestep</li>
+                    <li>• False negative rate: 10%</li>
+                    <li>• Position uncertainty: 0.3m standard deviation</li>
+                    <li>• Multi-object tracking with nearest-neighbor association</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h4 className="font-bold mb-2">3. System Latency</h4>
+                  <p className="text-sm text-gray-700 mb-2">End-to-end delay modeling:</p>
+                  <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                    <li>• Sensor delay: 50ms</li>
+                    <li>• Computation delay: 30ms</li>
+                    <li>• Actuation delay: 20ms</li>
+                    <li>• Total: 100ms (2 timesteps at 20 Hz)</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h4 className="font-bold mb-2">4. 3D Vehicle Dynamics</h4>
+                  <p className="text-sm text-gray-700 mb-2">Extensions beyond 2D bicycle model:</p>
+                  <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                    <li>• Roll and pitch dynamics from acceleration</li>
+                    <li>• Weight transfer affecting tire normal forces</li>
+                    <li>• Moments of inertia: Ixx = 0.01 kg·m², Iyy = 0.015 kg·m²</li>
+                    <li>• Numerical stability checks for overflow prevention</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h4 className="font-bold mb-2">5. Moving Obstacles</h4>
+                  <p className="text-sm text-gray-700 mb-2">Traffic simulation with multiple behaviors:</p>
+                  <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                    <li>• Lane following using Intelligent Driver Model (IDM)</li>
+                    <li>• Cut-in maneuvers and jaywalking pedestrians</li>
+                    <li>• Circular and random walk patterns</li>
+                    <li>• Configurable agent types and quantities</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                <p className="text-xs text-gray-700">
+                  <strong>Training Modes:</strong> The environment supports both research-grade mode (all features enabled) 
+                  and toy mode (baseline 2D dynamics only) for ablation studies. Models are automatically saved to dc_saves/ 
+                  with configuration metadata for environment reconstruction.
                 </p>
               </div>
             </div>
@@ -555,23 +626,25 @@ export default function ResearchPage() {
               <div className="card">
                 <h3 className="text-xl mb-4">Training Configuration</h3>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li><strong>Episodes:</strong> 10,000</li>
+                  <li><strong>Algorithm:</strong> Soft Actor-Critic (SAC)</li>
+                  <li><strong>Timesteps:</strong> 50,000</li>
                   <li><strong>Batch size:</strong> 256</li>
                   <li><strong>Learning rate:</strong> 3e-4</li>
                   <li><strong>Discount factor γ:</strong> 0.99</li>
-                  <li><strong>Entropy coefficient α:</strong> 0.2</li>
-                  <li><strong>Replay buffer:</strong> 1M transitions</li>
+                  <li><strong>Replay buffer:</strong> 100k transitions</li>
+                  <li><strong>Network:</strong> 2x256 hidden layers</li>
                 </ul>
               </div>
 
               <div className="card">
                 <h3 className="text-xl mb-4">Compute Resources</h3>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li><strong>GPU:</strong> NVIDIA RTX 3090</li>
-                  <li><strong>Training time:</strong> ~8 hours</li>
-                  <li><strong>Framework:</strong> PyTorch 2.0</li>
-                  <li><strong>Simulation:</strong> PyGame + NumPy</li>
-                  <li><strong>Parallelization:</strong> 8 workers</li>
+                  <li><strong>Hardware:</strong> Apple M1 Max</li>
+                  <li><strong>GPU:</strong> Metal Performance Shaders (MPS)</li>
+                  <li><strong>Training time:</strong> 7 minutes (50k steps)</li>
+                  <li><strong>Framework:</strong> PyTorch 2.8.0</li>
+                  <li><strong>Throughput:</strong> 118 iterations/second</li>
+                  <li><strong>Environment:</strong> Drift Gym (Gymnasium)</li>
                 </ul>
               </div>
             </div>
@@ -580,15 +653,21 @@ export default function ResearchPage() {
               <h3 className="text-xl mb-4">Code Structure</h3>
               <pre className="text-sm bg-gray-50 p-4 rounded overflow-x-auto">
 {`autonomous-vehicle-drifting/
+├── drift_gym/            # Research-grade RL environment
+│   ├── envs/            # Gymnasium environment
+│   ├── sensors/         # GPS/IMU noise models
+│   ├── perception/      # Object detection & tracking
+│   ├── dynamics/        # 3D vehicle dynamics
+│   ├── agents/          # Moving obstacles
+│   └── scenarios/       # Randomized scenarios
 ├── src/
-│   ├── models/           # IKD and SAC implementations
-│   ├── rl/               # RL training loop
-│   ├── simulator/        # Physics engine
-│   ├── data_processing/  # IMU augmentation
-│   └── visualization/    # Plotting utilities
-├── trained_models/       # Pre-trained weights
-├── web-ui/               # Interactive demo
-└── configs/              # Hyperparameters`}
+│   ├── models/          # IKD implementation
+│   ├── rl/              # Original environment
+│   └── simulator/       # Physics engine
+├── dc_saves/            # Trained SAC models
+├── trained_models/      # IKD models
+├── web-ui/              # This interface
+└── train_sac_advanced.py # Training script`}
               </pre>
             </div>
           </motion.div>
@@ -636,7 +715,7 @@ export default function ResearchPage() {
         <div className="container-custom text-center text-gray-600">
           <p className="mb-2">© 2024 University of Texas at Austin</p>
           <p className="text-sm">
-            <a href="https://github.com/msuv08/autonomous-vehicle-drifting" className="hover:text-black transition">GitHub</a>
+            <a href="https://github.com/omeedcs/autonomous-vehicle-drifting" className="hover:text-black transition">GitHub</a>
             {' • '}
             <a href="https://arxiv.org/abs/2402.14928" className="hover:text-black transition">arXiv</a>
           </p>
