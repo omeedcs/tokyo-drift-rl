@@ -29,6 +29,7 @@ import torch
 
 from src.utils.model_loader import PretrainedModelLoader
 from src.rl.gym_drift_env import GymDriftEnv
+from drift_gym.envs import AdvancedDriftCarEnv
 import deep_control as dc
 
 app = Flask(__name__)
@@ -40,14 +41,19 @@ simulation_running = False
 current_simulation = None
 model_loader = PretrainedModelLoader()
 
+# Environment types
+ENV_SIMPLE = 'simple'      # Original demonstration environment
+ENV_RESEARCH = 'research'  # Research-grade with sensors/EKF
+
 
 class SimulationRunner:
     """Runs simulation and streams frames via WebSocket"""
     
-    def __init__(self, model_name: str, scenario: str = "loose", max_steps: int = 500):
+    def __init__(self, model_name: str, scenario: str = "loose", max_steps: int = 500, env_type: str = ENV_SIMPLE):
         self.model_name = model_name
         self.scenario = scenario
         self.max_steps = max_steps
+        self.env_type = env_type
         self.running = False
         self.env = None
         self.agent = None
@@ -81,12 +87,24 @@ class SimulationRunner:
                 self.agent, _ = model_loader.load_sac(self.model_name)
                 print(f"Loaded SAC model: {self.model_name}")
             
-            # Create environment with rendering
-            self.env = GymDriftEnv(
-                scenario=self.scenario,
-                max_steps=self.max_steps,
-                render_mode="rgb_array"
-            )
+            # Create environment based on type
+            if self.env_type == ENV_RESEARCH:
+                print(f"Creating research-grade environment (sensors + EKF)")
+                self.env = AdvancedDriftCarEnv(
+                    scenario=self.scenario,
+                    use_noisy_sensors=True,
+                    use_perception_pipeline=False,
+                    use_latency=False,
+                    render_mode="rgb_array",
+                    seed=42
+                )
+            else:
+                print(f"Creating simple demonstration environment")
+                self.env = GymDriftEnv(
+                    scenario=self.scenario,
+                    max_steps=self.max_steps,
+                    render_mode="rgb_array"
+                )
             
             obs, _ = self.env.reset()
             step = 0
@@ -114,16 +132,26 @@ class SimulationRunner:
                     # Emit frame via WebSocket
                     socketio.emit('simulation_frame', {'frame': frame_base64})
                     
-                    # Emit metrics
-                    state = self.env.sim_env.vehicle.get_state()
-                    metrics = {
-                        'step': step,
-                        'reward': float(reward),
-                        'position': {'x': float(state.x), 'y': float(state.y)},
-                        'velocity': float(state.velocity),
-                        'angular_velocity': float(state.angular_velocity),
-                    }
-                    socketio.emit('simulation_metrics', metrics)
+                    # Emit metrics (handle different environment types)
+                    try:
+                        if self.env_type == ENV_RESEARCH:
+                            # Research env has different access pattern
+                            state = self.env.sim_env.vehicle.get_state()
+                        else:
+                            # Simple env
+                            state = self.env.sim_env.vehicle.get_state()
+                        
+                        metrics = {
+                            'step': step,
+                            'reward': float(reward),
+                            'position': {'x': float(state.x), 'y': float(state.y)},
+                            'velocity': float(state.velocity),
+                            'angular_velocity': float(state.angular_velocity),
+                            'env_type': self.env_type
+                        }
+                        socketio.emit('simulation_metrics', metrics)
+                    except Exception as e:
+                        print(f"Warning: Could not emit metrics: {e}")
                 
                 step += 1
                 
@@ -189,17 +217,19 @@ def handle_start_simulation(data):
     model_name = data.get('model', 'sac_loose_2')
     scenario = data.get('scenario', 'loose')
     max_steps = data.get('max_steps', 500)
+    env_type = data.get('env_type', ENV_SIMPLE)  # Default to simple
     
-    print(f"Starting simulation: model={model_name}, scenario={scenario}, max_steps={max_steps}")
+    print(f"Starting simulation: model={model_name}, scenario={scenario}, max_steps={max_steps}, env={env_type}")
     
-    current_simulation = SimulationRunner(model_name, scenario, max_steps)
+    current_simulation = SimulationRunner(model_name, scenario, max_steps, env_type)
     current_simulation.start()
     simulation_running = True
     
     emit('simulation_started', {
         'model': model_name,
         'scenario': scenario,
-        'max_steps': max_steps
+        'max_steps': max_steps,
+        'env_type': env_type
     })
 
 
@@ -231,6 +261,26 @@ def handle_get_models():
     emit('available_models', {
         'ikd': [m.name for m in models['ikd']],
         'sac': [m.name for m in models['sac']]
+    })
+
+
+@socketio.on('get_environment_types')
+def handle_get_env_types():
+    """Get list of available environment types"""
+    emit('environment_types', {
+        'types': [
+            {
+                'id': ENV_SIMPLE,
+                'name': 'Simple (Demo)',
+                'description': 'Original environment for demonstration - fast, works with old models'
+            },
+            {
+                'id': ENV_RESEARCH,
+                'name': 'Research-Grade',
+                'description': 'Advanced environment with GPS, IMU, and EKF - requires new models'
+            }
+        ],
+        'default': ENV_SIMPLE
     })
 
 
