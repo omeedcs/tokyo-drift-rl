@@ -46,15 +46,15 @@
   }
 
   .card {
-    @apply bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300;
+    @apply bg-white border-l-4 border-l-tokyo-red border-t border-r border-b border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all duration-300;
   }
 
   .btn-primary {
-    @apply bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-800 transition-colors duration-200;
+    @apply bg-tokyo-red text-white px-6 py-3 rounded-md font-medium hover:bg-tokyo-darkred transition-all duration-200;
   }
 
   .btn-secondary {
-    @apply bg-white text-black px-6 py-3 rounded-md font-medium border border-gray-300 hover:bg-gray-50 transition-colors duration-200;
+    @apply bg-white text-tokyo-red px-6 py-3 rounded-md font-medium border-2 border-tokyo-red hover:bg-tokyo-red hover:text-white transition-all duration-200;
   }
 }
 

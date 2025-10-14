@@ -9,17 +9,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        tokyo: {
+          red: '#DC143C',      // Crimson red (Japanese racing)
+          darkred: '#8B0000',  // Deep red accent
+          black: '#0A0A0A',    // Rich black
+          gray: '#1A1A1A',     // Dark gray
+          silver: '#C0C0C0',   // Silver accent
+          white: '#FAFAFA',    // Off-white
+          neon: '#FF3366',     // Subtle neon accent
+        },
         primary: {
-          50: '#f8f9fa',
-          100: '#f1f3f5',
-          200: '#e9ecef',
-          300: '#dee2e6',
-          400: '#ced4da',
-          500: '#adb5bd',
-          600: '#6c757d',
-          700: '#495057',
-          800: '#343a40',
-          900: '#212529',
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#DC143C',
+          600: '#b91c1c',
+          700: '#991b1b',
+          800: '#7f1d1d',
+          900: '#0A0A0A',
         }
       },
       fontFamily: {

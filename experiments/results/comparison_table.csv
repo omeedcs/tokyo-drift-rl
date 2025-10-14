@@ -1,1 +1,2 @@
-
+Algorithm,Config,Success Rate (%),Avg Reward,Path Dev (m),Jerk,Collision (%)
+SAC,baseline,0.0,5.65,0.170,0.625,0.0

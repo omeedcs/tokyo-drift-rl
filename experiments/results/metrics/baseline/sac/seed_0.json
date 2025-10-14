@@ -5,4 +5,14 @@
   "path_deviation_mean": 0.1695639711331381,
   "path_deviation_std": 2.7755575615628914e-17,
   "final_distance_to_goal_mean": 0.548076589059592,
-  "control_jerk_mean": 
+  "control_jerk_mean": 0.6249973177909851,
+  "control_jerk_std": 5.960464477539063e-08,
+  "collision_rate": 0.0,
+  "near_miss_rate": 0.0,
+  "avg_path_length": 3.693648800849915,
+  "avg_steps": 25.0,
+  "n_episodes": 20,
+  "algorithm": "SAC",
+  "config_name": "baseline",
+  "timestamp": "20251014_160429"
+}
