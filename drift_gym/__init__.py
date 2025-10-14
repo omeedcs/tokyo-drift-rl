@@ -10,13 +10,13 @@ __version__ = "0.1.0"
 
 # Register environment with Gymnasium
 register(
-    id="DriftCar-v0",
-    entry_point="drift_gym.envs:DriftCarEnv",
+    id="AdvancedDriftCar-v0",
+    entry_point="drift_gym.envs:AdvancedDriftCarEnv",
     max_episode_steps=400,
     reward_threshold=45.0,
 )
 
 # Import main environment class
-from drift_gym.envs.drift_car_env import DriftCarEnv
+from drift_gym.envs.drift_car_env_advanced import AdvancedDriftCarEnv
 
-__all__ = ["DriftCarEnv", "__version__"]
+__all__ = ["AdvancedDriftCarEnv", "__version__"]
