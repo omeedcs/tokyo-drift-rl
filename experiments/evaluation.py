@@ -247,21 +247,21 @@ class DriftEvaluator:
         
         env.close()
         
-        # Compute aggregate metrics
+        # Compute aggregate metrics (convert numpy types to Python native types for JSON serialization)
         metrics = EvaluationMetrics(
-            success_rate=np.mean(successes),
-            avg_completion_time=np.mean([t for t, s in zip(completion_times, successes) if s]) if any(successes) else 0.0,
-            avg_episode_reward=np.mean(episode_rewards),
-            path_deviation_mean=np.mean(path_deviations),
-            path_deviation_std=np.std(path_deviations),
-            final_distance_to_goal_mean=np.mean(final_distances),
-            control_jerk_mean=np.mean(control_jerks),
-            control_jerk_std=np.std(control_jerks),
-            collision_rate=np.mean(collisions),
-            near_miss_rate=np.mean(near_misses),
-            avg_path_length=np.mean(path_lengths),
-            avg_steps=np.mean(episode_steps),
-            n_episodes=self.n_episodes,
+            success_rate=float(np.mean(successes)),
+            avg_completion_time=float(np.mean([t for t, s in zip(completion_times, successes) if s])) if any(successes) else 0.0,
+            avg_episode_reward=float(np.mean(episode_rewards)),
+            path_deviation_mean=float(np.mean(path_deviations)),
+            path_deviation_std=float(np.std(path_deviations)),
+            final_distance_to_goal_mean=float(np.mean(final_distances)),
+            control_jerk_mean=float(np.mean(control_jerks)),
+            control_jerk_std=float(np.std(control_jerks)),
+            collision_rate=float(np.mean(collisions)),
+            near_miss_rate=float(np.mean(near_misses)),
+            avg_path_length=float(np.mean(path_lengths)),
+            avg_steps=float(np.mean(episode_steps)),
+            n_episodes=int(self.n_episodes),
             algorithm=algorithm_name,
             config_name=config_name,
             timestamp=time.strftime("%Y%m%d_%H%M%S")

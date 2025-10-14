@@ -1,0 +1,8 @@
+{
+  "success_rate": 0.0,
+  "avg_completion_time": 0.0,
+  "avg_episode_reward": 5.648215218253715,
+  "path_deviation_mean": 0.1695639711331381,
+  "path_deviation_std": 2.7755575615628914e-17,
+  "final_distance_to_goal_mean": 0.548076589059592,
+  "control_jerk_mean": 

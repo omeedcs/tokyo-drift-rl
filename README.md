@@ -1,136 +1,175 @@
-# 🏎️ Deep Reinforcement Learning for Autonomous Vehicle Drifting
+# Autonomous Vehicle Drift Control: A Research Platform
 
-**A Complete Research Project: Training, Evaluation, Interactive Demo, and Reusable Environment**
+**A comprehensive research platform for autonomous vehicle drift control combining reinforcement learning, inverse kinematics, and validated sensor simulation.**
 
 [![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.8.0-red.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **🚀 New here?** Read **[START_HERE.md](START_HERE.md)** for a 2-minute orientation guide!
+## Overview
 
----
+This repository provides a complete research infrastructure for autonomous vehicle drift control, developed at UT Austin AMRL. The platform integrates three major components: (1) comparative algorithm evaluation (SAC vs. IKD vs. baseline), (2) a research-grade Gymnasium environment with validated sensor models and state estimation, and (3) an interactive web-based visualization system for real-time model demonstration.
 
-## 👋 First Time Here? Quick Start!
+### Key Contributions
 
-**If you just want to see something cool:**
-```bash
-./start_web_ui.sh  # Launch interactive website → http://localhost:3001
-```
+- **Algorithm Comparison**: Empirical evaluation showing SAC achieves 49% faster task completion than baseline methods
+- **Research-Grade Simulation**: Validated sensor models (GPS, IMU) based on hardware datasheets with Extended Kalman Filter implementation
+- **Evaluation Framework**: Standardized benchmarking with 10+ metrics, ablation studies, and statistical significance testing
+- **Interactive Demonstration**: Web-based real-time visualization with mathematical derivations and model comparison
 
-**If you want to reproduce the research:**
-```bash
-source venv/bin/activate
-python compare_all_methods.py --trials 20  # Benchmark all methods
-```
+### Quick Navigation
 
-**If you want to build your own RL agent:**
-```bash
-cd drift_gym
-pip install -e .
-# Now use it like any Gymnasium environment!
-```
-
-**Still confused?** Read the [3-minute overview](#-whats-in-this-repo) below or check out the **[📍 PROJECT MAP](PROJECT_MAP.md)** for visual diagrams 👇
-
----
-
-## 🎯 What's In This Repo?
-
-This repository contains **3 major components** for autonomous vehicle drifting research:
-
-### 1. 🧪 **Research Experiments** (Original SAC/IKD Comparison)
-Trained and evaluated models comparing Baseline, IKD, and SAC approaches. **SAC achieves 89.2% success rate** and 49% faster completion.
-
-👉 **[Jump to Research Section](#-research-experiments)**
-
-### 2. 🌐 **Interactive Research Website** (Professional Demo)
-Clean, academic website with:
-- Live simulation streaming
-- Mathematical derivations with hover tooltips
-- Real-time model comparison (SAC vs IKD)
-- Evolution from original IKD paper
-
-👉 **[Jump to Website Section](#-interactive-research-website)**
-
-### 3. 🎮 **Production-Grade Gym Environment** (Reusable Package)
-Professional Gymnasium environment with:
-- Pacejka tire dynamics
-- 10+ diverse scenarios
-- Curriculum learning
-- Domain randomization
-- Full configuration system
-
-👉 **[Jump to Gym Environment Section](#-drift-gym-environment)**
-
----
-
-## 🚀 Quick Start - Pick Your Path
-
-### Option A: See the Interactive Demo
-```bash
-./start_web_ui.sh
-# Opens at http://localhost:3001
-```
-**Best for:** Showcasing your work, presentations, portfolio
-
-### Option B: Run the Research Experiments
+**Algorithm Training and Evaluation:**
 ```bash
 python compare_all_methods.py --trials 20
 ```
-**Best for:** Reproducing results, benchmarking
 
-### Option C: Use the Gym Environment
+**Research-Grade Environment:**
 ```bash
-cd drift_gym
-pip install -e .
-python examples/basic_usage.py
+python experiments/benchmark_algorithms.py --algorithms SAC --config baseline --seeds 5
 ```
-**Best for:** Building new RL algorithms, research
+
+**Interactive Demonstration:**
+```bash
+./start_web_ui.sh
+```
 
 ---
 
-## 📋 Repository Overview
+## Repository Structure
+
+This repository contains three integrated components for autonomous vehicle drifting research:
+
+### 1. Comparative Algorithm Evaluation
+
+Empirical comparison of three control strategies on F1/10 scale drift maneuvers:
+- **Baseline**: Hand-tuned PID controller with trajectory tracking
+- **IKD (Inverse Kinematics with Deep Learning)**: Neural network-based velocity correction
+- **SAC (Soft Actor-Critic)**: Model-free reinforcement learning
+
+Results demonstrate SAC achieves 49% faster task completion with 100% success rate across 20 trials.
+
+[Jump to Algorithm Evaluation](#comparative-algorithm-evaluation)
+
+### 2. Research-Grade Gymnasium Environment
+
+Validated simulation environment featuring:
+- **Sensor Models**: GPS (u-blox ZED-F9P) and IMU (BMI088/MPU9250) based on hardware datasheets
+- **State Estimation**: Extended Kalman Filter with proper uncertainty propagation
+- **Evaluation Protocol**: 10+ standardized metrics with statistical significance testing
+- **Benchmarking Infrastructure**: Multi-algorithm comparison (SAC, PPO, TD3) with consistent hyperparameters
+- **Ablation Framework**: Systematic feature quantification for research contributions
+
+[Jump to Environment Documentation](#research-grade-environment)
+
+### 3. Interactive Visualization System
+
+Web-based demonstration platform with:
+- Real-time simulation streaming via WebSocket
+- Mathematical derivations with LaTeX rendering
+- Model comparison interface
+- Performance metric visualization
+
+[Jump to Visualization System](#interactive-visualization)
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Python 3.9 or higher (tested on 3.13)
+- Virtual environment recommended
+
+### Setup
+
+```bash
+# Clone repository
+git clone https://github.com/omeedcs/autonomous-vehicle-drifting.git
+cd autonomous-vehicle-drifting
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install core dependencies
+pip install -r requirements.txt
+
+# Install SAC implementation
+cd jake-deep-rl-algos
+pip install -e .
+cd ..
+
+# Install research environment dependencies (optional)
+pip install stable-baselines3 tensorboard pandas matplotlib seaborn
+```
+
+### Verification
+
+```bash
+# Test sensor models
+python drift_gym/sensors/sensor_models.py
+
+# Test Extended Kalman Filter
+python drift_gym/estimation/ekf.py
+
+# Run unit tests
+pytest tests/ -v
+```
+
+---
+
+## Directory Structure
 
 ```
 autonomous-vehicle-drifting/
+├── drift_gym/                   # Research-grade Gymnasium environment
+│   ├── sensors/                 # Validated GPS and IMU models
+│   ├── estimation/              # Extended Kalman Filter implementation
+│   ├── perception/              # Object detection and tracking
+│   ├── dynamics/                # 3D vehicle dynamics
+│   ├── agents/                  # Moving agent simulation
+│   └── envs/                    # Main environment interface
 │
-├── 🧪 RESEARCH EXPERIMENTS (Original Work)
-│   ├── src/                    # Core simulation code
-│   ├── trained_models/         # Saved IKD models
-│   ├── dc_saves/               # Saved SAC models  
-│   ├── train_sac_simple.py     # Train SAC
-│   ├── train_ikd_simple.py     # Train IKD
-│   ├── test_sac.py             # Test SAC
-│   ├── compare_all_methods.py  # Benchmark all methods
-│   └── watch_all_methods.py    # Visual comparison
+├── experiments/                 # Research infrastructure
+│   ├── evaluation.py            # Standardized evaluation protocol
+│   ├── benchmark_algorithms.py  # Multi-algorithm benchmarking
+│   ├── ablation_study.py        # Systematic ablation framework
+│   └── results/                 # Training logs and metrics
 │
-├── 🌐 RESEARCH WEBSITE (Interactive Demo)
-│   ├── web-ui/                 # Next.js website
-│   ├── simulation_server.py    # WebSocket backend
-│   └── start_web_ui.sh         # One-command launch
+├── tests/                       # Unit test suite
+│   ├── test_sensors.py          # Sensor model validation
+│   ├── test_ekf.py              # EKF correctness tests
+│   └── test_environment.py      # Environment tests
 │
-├── 🎮 DRIFT GYM ENVIRONMENT (Reusable Package)
-│   ├── drift_gym/              # Gymnasium environment
-│   │   ├── config/            # YAML configuration
-│   │   ├── dynamics/          # Pacejka tire model
-│   │   ├── scenarios/         # Scenario generator
-│   │   └── envs/              # Main environment
-│   └── README.md              # Complete gym docs
+├── src/                         # Core simulation (original)
+│   ├── simulator/               # Vehicle dynamics and physics
+│   ├── models/                  # Neural network architectures
+│   └── rl/                      # Reinforcement learning wrappers
 │
-└── 📚 DOCUMENTATION
-    ├── COMPLETE_PROJECT_SUMMARY.md
-    ├── DRIFT_GYM_IMPROVEMENTS.md
-    └── WEB_UI_GUIDE.md
+├── web-ui/                      # Interactive visualization
+│   ├── src/app/                 # Next.js application
+│   └── components/              # React components
+│
+├── trained_models/              # Pre-trained IKD models
+├── dc_saves/                    # Pre-trained SAC models
+├── comparison_results/          # Benchmark outputs
+│
+└── Documentation
+    ├── RESEARCH_GUIDE.md        # Complete research documentation
+    ├── QUICK_START_RESEARCH.md  # Quick start guide
+    └── PROJECT_MAP.md           # Visual component relationships
 ```
 
 ---
 
-## 🧪 Research Experiments
+## Comparative Algorithm Evaluation
 
-### What This Is
-Original research comparing 3 control approaches on F1/10 scale drift maneuvers.
+### Methodology
 
-### Key Results
+Empirical comparison of three control strategies on F1/10 scale autonomous drift maneuvers. The task requires navigating through a constrained passage while maintaining vehicle stability under high slip conditions.
+
+### Performance Results
 
 | Method | Success Rate | Avg Steps | Speed Improvement |
 |--------|--------------|-----------|-------------------|
@@ -138,11 +177,9 @@ Original research comparing 3 control approaches on F1/10 scale drift maneuvers.
 | **IKD** | 100% | 51.0 | +3.8% faster |
 | **SAC** | **100%** | **27.0** | **+49% faster** |
 
-<p align="center">
-  <img src="comparison_results/image.png" alt="Results" width="800"/>
-</p>
+![Performance Comparison](comparison_results/image.png)
 
-### Quick Start: Research
+### Reproduction Instructions
 
 ```bash
 # 1. Setup
@@ -164,87 +201,114 @@ python compare_all_methods.py --trials 20
 python watch_all_methods.py
 ```
 
-**📖 Full Research Guide:** See sections below for detailed reproduction steps.
+Complete details available in subsequent sections.
 
 ---
 
-## 🌐 Interactive Research Website
+## Interactive Visualization
 
-### What This Is
-A professional academic website showcasing your research with:
-- **Clean black & white design** (no neon!)
-- **Live simulation streaming** via WebSocket
-- **Mathematical derivations** with hover tooltips
-- **Evolution section** comparing original IKD paper to this work
-- **Model comparison** - switch between SAC and IKD in real-time
+### System Overview
 
-### Launch Website
+Web-based demonstration platform for real-time model visualization and comparison. The system consists of a Next.js frontend with WebSocket-based communication to a Python simulation backend.
+
+### Features
+
+- **Real-Time Simulation**: Live PyGame rendering streamed to browser via WebSocket
+- **Mathematical Documentation**: LaTeX-rendered equations with interactive tooltips
+- **Model Comparison**: Switch between trained models (SAC, IKD) during execution
+- **Performance Metrics**: Real-time visualization of success rate, path quality, and timing
+- **Research Context**: Documentation of methodology and comparison to baseline approaches
+
+### Deployment
 
 ```bash
 ./start_web_ui.sh
-# Opens at http://localhost:3001
 ```
 
-**Features:**
-- 📄 Complete research paper layout
-- 🎓 LaTeX math equations (hover for definitions!)
-- 🎮 Live demo with real-time PyGame streaming
-- 📊 Performance metrics and comparisons
-- 🔗 References to original IKD paper
+Access at http://localhost:3001
 
-### Website Structure
+### Architecture
 
 ```
 web-ui/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx           # Main research page
-│   │   └── globals.css        # Clean B&W theme + hover tooltips
+│   │   ├── page.tsx           # Main application
+│   │   └── globals.css        # Styling
 │   ├── components/
-│   │   └── LiveDemo.tsx       # WebSocket simulation viewer
+│   │   └── LiveDemo.tsx       # WebSocket client
 │   └── types/
-│       └── react-katex.d.ts   # Math rendering types
+│       └── react-katex.d.ts   # Type definitions
 └── package.json
 
-simulation_server.py            # Backend streaming server
+simulation_server.py            # WebSocket server
 ```
 
-**📖 Website Guide:** See `WEB_UI_GUIDE.md` and `CLEAN_WEBSITE_README.md`
+Additional documentation available in `WEB_UI_GUIDE.md`.
 
 ---
 
-## 🎮 Drift Gym Environment
+## Research-Grade Environment
 
-### What This Is
-A production-grade Gymnasium environment for autonomous drifting research. **Completely overhauled** from the original with:
+### Overview
 
-✅ **Fixed critical bugs** (observation bounds, rewards)  
-✅ **Realistic physics** (Pacejka tire model)  
-✅ **10+ diverse scenarios** (loose, tight, slalom, figure-8)  
-✅ **Curriculum learning** (auto-adjusts difficulty)  
-✅ **Domain randomization** (robust policies)  
-✅ **Full configuration** (YAML for everything)  
+Validated Gymnasium environment for autonomous drift control research. This component represents a significant upgrade from the initial implementation, incorporating hardware-validated sensor models, proper state estimation, and a comprehensive evaluation framework.
 
-### Quick Start: Gym
+### Key Features
+
+**Validated Sensor Models:**
+- GPS based on u-blox ZED-F9P specifications (0.3m horizontal accuracy)
+- IMU based on BMI088/MPU9250 datasheets
+- Allan variance noise characterization
+- Random walk bias drift modeling
+
+**Extended Kalman Filter:**
+- 6-DOF state estimation (position, orientation, velocities)
+- GPS-IMU sensor fusion at differential update rates
+- Proper covariance propagation
+- Joseph form for numerical stability
+
+**Evaluation Infrastructure:**
+- 10+ standardized metrics (success rate, path deviation, control smoothness, safety)
+- Statistical significance testing across multiple seeds
+- JSON/CSV export for publication
+
+**Benchmarking Tools:**
+- Multi-algorithm support (SAC, PPO, TD3)
+- Consistent hyperparameter configurations
+- TensorBoard logging integration
+- Automated comparison tables
+
+**Ablation Framework:**
+- Systematic feature addition protocol
+- Quantitative impact measurement
+- Automated report generation
+
+### Installation
 
 ```bash
 cd drift_gym
 pip install -e .
 ```
 
+### Basic Usage
+
 ```python
 import gymnasium as gym
-import drift_gym
+from drift_gym.envs import AdvancedDriftCarEnv
 
-# Create environment
-env = gym.make('DriftCar-v0',
-               scenario='loose',  # or 'tight', 'slalom', 'figure8'
-               render_mode='human')
+# Create environment with sensor models
+env = AdvancedDriftCarEnv(
+    scenario="loose",
+    use_noisy_sensors=True,      # Enable GPS + IMU
+    use_perception_pipeline=False,
+    seed=42
+)
 
-obs, info = env.reset(seed=42)  # Deterministic!
+obs, info = env.reset()
 
 for _ in range(500):
-    action = env.action_space.sample()
+    action = env.action_space.sample()  # Replace with your policy
     obs, reward, terminated, truncated, info = env.step(action)
     
     if terminated or truncated:
@@ -253,116 +317,99 @@ for _ in range(500):
 env.close()
 ```
 
-### What Was Fixed
+### Advanced Features
 
-| Issue | Before | After |
-|-------|--------|-------|
-| Observation bounds | ❌ Wrong (Box(-10,10)) | ✅ Correct per-dimension |
-| Rewards | ❌ Unbounded | ✅ Clipped [-10, 10] |
-| Drift rewards | ❌ None | ✅ Slip angle control |
-| Tire model | Basic kinematic | ✅ Pacejka (realistic) |
-| Scenarios | 2 | ✅ 10+ with randomization |
-| Configurable | ❌ Hard-coded | ✅ YAML config |
-| Deterministic | ❌ No | ✅ Full seeding |
-| Training speed | 100 steps/s | ✅ 1000 steps/s (10x!) |
+**Access EKF State Estimates:**
+```python
+ekf_state = env.ekf.get_state()
+print(f"Position uncertainty: {ekf_state.position_var:.4f} m^2")
+print(f"Velocity estimate: {ekf_state.vx:.2f} m/s")
+```
 
-### Gym Structure
+**Multi-Algorithm Benchmarking:**
+```bash
+python experiments/benchmark_algorithms.py \
+    --algorithms SAC PPO TD3 \
+    --config baseline \
+    --seeds 5 \
+    --timesteps 500000
+```
+
+**Ablation Studies:**
+```bash
+python experiments/ablation_study.py \
+    --algorithm SAC \
+    --seeds 3 \
+    --timesteps 500000
+```
+
+### Environment Structure
 
 ```
 drift_gym/
-├── config/
-│   └── default_config.yaml      # All parameters
+├── sensors/
+│   └── sensor_models.py         # GPS and IMU implementations
+├── estimation/
+│   └── ekf.py                   # Extended Kalman Filter
+├── perception/
+│   └── object_detection.py      # Detection and tracking
 ├── dynamics/
-│   └── pacejka_tire.py         # Realistic tire forces
-├── scenarios/
-│   └── scenario_generator.py   # 10+ scenarios
+│   └── vehicle_3d.py            # 3D vehicle dynamics
+├── agents/
+│   └── moving_agents.py         # Dynamic obstacles
 ├── envs/
-│   └── drift_car_env.py        # Main environment
-└── README.md                    # Complete documentation
+│   └── drift_car_env_advanced.py # Main environment
+└── scenarios/
+    └── scenario_generator.py    # Scenario configurations
 ```
 
-**📖 Gym Guide:** See `drift_gym/README.md` and `DRIFT_GYM_IMPROVEMENTS.md`
+Complete documentation available in `RESEARCH_GUIDE.md` and `QUICK_START_RESEARCH.md`.
 
 ---
 
-## 📚 Full Documentation Index
+## Documentation
 
-| Document | Description |
+| Document | Purpose |
 |----------|-------------|
-| `COMPLETE_PROJECT_SUMMARY.md` | Overview of all 3 components |
-| `DRIFT_GYM_IMPROVEMENTS.md` | Detailed gym fixes (10 critical issues) |
-| `WEB_UI_GUIDE.md` | Website technical details |
-| `CLEAN_WEBSITE_README.md` | Website usage guide |
-| `drift_gym/README.md` | Complete gym environment docs |
-| `comparison_results/RESULTS.md` | Research benchmark results |
+| `RESEARCH_GUIDE.md` | Complete technical documentation for research-grade environment |
+| `QUICK_START_RESEARCH.md` | Quick start guide for experiments |
+| `PROJECT_MAP.md` | Visual guide showing component relationships |
+| `WEB_UI_GUIDE.md` | Web visualization system documentation |
+| `comparison_results/RESULTS.md` | Empirical benchmark results |
 
 ---
 
-## 🎯 Performance Results (Research)
+## Empirical Results
 
-### Loose Drift Scenario (20 trials each)
+### Algorithm Comparison (20 trials)
 
 | Method | Avg Steps | Success Rate | Speed Improvement | Status |
 |--------|-----------|--------------|-------------------|---------|
-| **Baseline** | 53.0 | 100% | - (reference) | ✅ |
-| **IKD** | 51.0 | 100% | +3.8% faster | ✅ |
-| **SAC** | **27.0** | **100%** | **+49% faster** | 🚀 |
+| **Baseline** | 53.0 | 100% | - (reference) | Complete |
+| **IKD** | 51.0 | 100% | +3.8% faster | Complete |
+| **SAC** | **27.0** | **100%** | **+49% faster** | Complete |
 
+![Results](comparison_results/image.png)
 
-<p align="center">
-  <img src="comparison_results/image.png" alt="Results" width="800"/>
-</p>
+### Statistical Analysis
 
-### Key Metrics
+- **IKD Training**: 15,900 samples collected from baseline controller trajectory tracking
+- **SAC Training**: 50,000 environment timesteps (approximately 8 minutes wall-clock time)
+- **Performance Consistency**: SAC achieves uniform 27-step completion across all evaluation trials
+- **Reward Signal**: SAC optimizes to +33.30 average reward compared to baseline -76.88
 
-- **IKD Training:** 15,900 samples from real trajectory tracking
-- **SAC Training:** 50,000 environment steps (~8 minutes)
-- **Consistency:** SAC achieves identical 27-step performance across all trials
-- **Reward:** SAC achieves +33.30 (positive) vs baseline -76.88 (negative)
+### Visualization
 
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
+Simultaneous execution comparison available via:
 ```bash
-# Python 3.13+ required
-python --version  # Should be 3.13+
-
-# Clone repository
-git clone https://github.com/omeedcs/autonomous-vehicle-drifting.git
-cd autonomous-vehicle-drifting
-```
-
-### Installation
-
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Install Jake's deep-rl-algos (for SAC)
-cd jake-deep-rl-algos
-pip install -e .
-cd ..
-```
-
-### Run Visual Comparison
-
-```bash
-# Watch all three methods perform simultaneously
 python watch_all_methods.py
 ```
 
-This opens a pygame window showing Baseline (blue), IKD (purple), and SAC (green) performing the drift maneuver side-by-side.
+Displays all three methods executing in parallel with distinct visual markers.
 
 ---
 
-## 📊 Reproducing Results
+## Experimental Reproduction
 
 ### 1. Test Baseline Controller
 
@@ -389,10 +436,10 @@ python train_ikd_simple.py \
 python test_ikd_simulation.py --model trained_models/ikd_final.pt
 ```
 
-**Expected output:**
-- Training loss: 0.086 (final)
-- Test performance: 51 steps, 100% success
-- Plots saved to `ikd_test_results/`
+Expected output:
+- Final training loss: 0.086
+- Test performance: 51 steps with 100% success rate
+- Visualization outputs in `ikd_test_results/`
 
 ### 3. Train & Test SAC
 
@@ -410,10 +457,10 @@ python test_sac.py
 # Model saved to: dc_saves/sac_loose_*/
 ```
 
-**Expected output:**
+Expected results:
 - Success rate: 100%
-- Average steps: 27.0
-- Average reward: +33.30
+- Average completion: 27.0 steps
+- Average cumulative reward: +33.30
 
 ### 4. Generate Comparison
 
@@ -491,7 +538,7 @@ Critic Networks (twin):
 
 ---
 
-## 🔬 Methodology
+## Methodology
 
 ### Experimental Setup
 
@@ -515,18 +562,18 @@ Critic Networks (twin):
 4. Train neural network to predict corrections
 5. Deploy: `actual_command = baseline_command + ikd_correction`
 
-**Key insight:** IKD learns the inverse model - what correction is needed to achieve desired output given the command.
+The IKD approach learns an inverse dynamics model, predicting the correction required to achieve desired vehicle response given commanded inputs.
 
 ### Reinforcement Learning (SAC)
 
-**Reward function:**
+Reward function:
 ```python
 reward = -distance_to_goal  # Dense reward shaping
 penalty = -100 if collision
 bonus = +100 if success
 ```
 
-**Training details:**
+Training configuration:
 - Warm-up: 1,000 random steps
 - Learning rate: 3e-4 (both actor and critic)
 - Discount factor (γ): 0.99
@@ -535,201 +582,172 @@ bonus = +100 if success
 
 ---
 
-## 📈 Results & Analysis
+## Analysis
 
 ### Performance Comparison
 
 ![Comparison Plot](comparison_results/method_comparison.png)
 
-**Baseline (53 steps):**
+Baseline (53 steps):
 - Hand-tuned PID controller
 - Follows pre-planned trajectory
 - 100% success on loose scenario
 - Predictable but suboptimal
 
-**IKD (51 steps, +3.8%):**
+IKD (51 steps, +3.8%):
 - Learns velocity correction from data
 - Improves baseline tracking accuracy
 - Modest improvement (2 steps faster)
 - Demonstrates inverse dynamics learning works
 
-**SAC (27 steps, +49%):**
+SAC (27 steps, +49%):
 - Discovers optimal trajectory end-to-end
 - Completes task in half the time
 - Perfect consistency (same 27 steps every trial)
 - Learns superior policy from scratch
 
-### Why SAC Outperforms
+### Performance Analysis
 
-1. **Trajectory Optimization:** SAC learns optimal path, not just tracking
-2. **End-to-End Learning:** No assumptions about vehicle dynamics
-3. **Exploration:** Discovered faster strategies during training
-4. **Direct Optimization:** Optimizes task completion, not tracking error
+**Superior SAC Performance:**
+- Learns task-optimal trajectories rather than trajectory tracking
+- End-to-end optimization without requiring dynamics model
+- Exploration-driven discovery of efficient strategies
+- Direct optimization of task completion metrics
 
-### Limitations
-
-- **Tight scenario:** All methods struggle (baseline fails at 43 steps)
-- **Transfer:** Models trained on simulation, not tested on real hardware
-- **Generalization:** Single scenario type, not tested on varied conditions
+**Limitations:**
+- Performance degrades on tightly constrained scenarios
+- Sim-to-real transfer not validated on physical hardware
+- Limited evaluation on diverse environmental conditions
 
 ---
 
-## 🛠️ Development
+## Development
 
-### Project Structure
+### Key Scripts
 
 ```
-Key Files:
-├── collect_ikd_data_corrected.py   # IKD data collection
-├── train_ikd_simple.py             # IKD training script
-├── train_sac_simple.py             # SAC training script
+├── collect_ikd_data_corrected.py   # IKD dataset generation
+├── train_ikd_simple.py             # IKD model training
+├── train_sac_simple.py             # SAC agent training
 ├── test_sac.py                     # SAC evaluation
-├── compare_all_methods.py          # Automated benchmarking
+├── compare_all_methods.py          # Multi-method benchmarking
 ├── watch_all_methods.py            # Visual comparison
-└── test_ikd_simulation.py          # IKD testing with viz
+└── test_ikd_simulation.py          # IKD validation with visualization
 ```
 
-### Adding New Methods
+### Extension
 
-1. Implement controller in `src/simulator/controller.py`
-2. Add test case to `compare_all_methods.py`
-3. Run benchmark: `python compare_all_methods.py --trials 20`
+**Adding New Control Methods:**
+1. Implement controller interface in `src/simulator/controller.py`
+2. Add evaluation case to `compare_all_methods.py`
+3. Execute benchmark: `python compare_all_methods.py --trials 20`
 
-### Training Custom Models
-
+**Custom Model Training:**
 ```python
-# Example: Train IKD with different architecture
 from src.models.ikd_model import IKDModel
 
-model = IKDModel(hidden_size=64)  # Customize hidden size
-# ... training code ...
+model = IKDModel(hidden_size=64)
+# Training implementation
 ```
 
 ---
 
-## 📝 Citation
+## Citation
 
-If you use this code in your research, please cite:
+If this work contributes to your research, please cite:
 
 ```bibtex
-@article{drifting2024,
-  title={Autonomous Vehicle Drifting: Comparing Control Strategies},
-  author={Your Name},
-  journal={arXiv preprint arXiv:XXXX.XXXXX},
-  year={2024}
+@misc{tehrani2025drift,
+  title={Autonomous Vehicle Drift Control: A Research Platform},
+  author={Tehrani, Omeed},
+  institution={University of Texas at Austin, AMRL},
+  year={2025},
+  url={https://github.com/omeedcs/autonomous-vehicle-drifting}
 }
 ```
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Areas of interest:
+Contributions are welcome. Priority areas include:
 
-- [ ] Real hardware deployment
-- [ ] Additional RL algorithms (TD3, PPO, DDPG)
-- [ ] Tight scenario improvements
-- [ ] Multi-scenario training
-- [ ] Sim-to-real transfer
+- Real hardware deployment and validation
+- Additional RL algorithm implementations (TD3, PPO, DDPG)
+- Performance improvements for constrained scenarios
+- Multi-scenario generalization
+- Sim-to-real transfer techniques
 
-Please open an issue or pull request.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see LICENSE file for details.
+Please submit issues or pull requests via GitHub.
 
 ---
 
-## ❓ Frequently Asked Questions
+## License
 
-### Q: I'm new to the repo. What should I do first?
-**A:** Run `./start_web_ui.sh` to see the interactive website. It's the easiest way to understand the project!
-
-### Q: What's the difference between the 3 components?
-**A:** 
-- **Research Experiments** = Original work (SAC vs IKD comparison)
-- **Website** = Interactive demo for presenting the research
-- **Drift Gym** = Reusable environment for future research
-
-### Q: Can I use the gym environment for my own RL project?
-**A:** Yes! That's why we made it. `cd drift_gym && pip install -e .` and use it like any Gymnasium env.
-
-### Q: Do I need the trained models to run the website?
-**A:** No! The website will work with any models in `dc_saves/` or `trained_models/`. You can also train your own.
-
-### Q: How do I activate the virtual environment?
-**A:** `source venv/bin/activate` (you need to do this before running Python scripts)
-
-### Q: Where are the trained models?
-**A:** 
-- SAC models: `dc_saves/sac_loose_*/`
-- IKD models: `trained_models/ikd_*.pt`
-
-### Q: Can I train on my own scenarios?
-**A:** Yes! Use the drift_gym environment with custom scenarios. See `drift_gym/scenarios/scenario_generator.py` for examples.
-
-### Q: What's with all the documentation files?
-**A:** Each component has its own guide:
-- Website → `WEB_UI_GUIDE.md`
-- Gym → `drift_gym/README.md`
-- Everything → `COMPLETE_PROJECT_SUMMARY.md`
-
-### Q: Is this ready for real hardware?
-**A:** The simulation is ready. Real hardware would need:
-- IMU integration
-- Motor control
-- Sensor fusion
-- Safety systems
-
-### Q: Can I contribute?
-**A:** Absolutely! See the [Contributing](#-contributing) section. PRs welcome!
+MIT License - see LICENSE file for complete terms.
 
 ---
 
-## 🙏 Acknowledgments
+## Frequently Asked Questions
 
-- **Original IKD Paper**: [Suvarna & Tehrani, 2024](https://arxiv.org/abs/2402.14928)
-- **Jake's deep-rl-algos**: SAC implementation ([repo](https://github.com/jakelourie1502/deep-rl-algos))
-- **PyTorch**: Deep learning framework
-- **Gymnasium**: RL environment standard
-- **Pygame**: Visualization
-- **UT Austin AMRL**: Research support
+**Q: How do I get started with this repository?**  
+A: Begin with `./start_web_ui.sh` for interactive visualization, or review `PROJECT_MAP.md` for component relationships.
 
----
+**Q: What distinguishes the three main components?**  
+A: (1) Comparative evaluation provides empirical algorithm comparison, (2) research-grade environment enables validated experimentation, (3) visualization system facilitates demonstration.
 
-## 📧 Contact
+**Q: Can the environment be used independently?**  
+A: Yes. Install via `cd drift_gym && pip install -e .` for use as a standard Gymnasium environment.
 
-For questions or collaborations:
-- **GitHub Issues:** [Open an issue](https://github.com/omeedcs/autonomous-vehicle-drifting/issues)
-- **Email:** omeed@cs.utexas.edu
+**Q: Are pre-trained models required?**  
+A: Pre-trained models are provided but not required. The system functions with any compatible model in `dc_saves/` or `trained_models/`.
 
----
+**Q: Where are trained models stored?**  
+A: SAC models in `dc_saves/sac_loose_*/`, IKD models in `trained_models/ikd_*.pt`.
 
-## 🔗 Quick Links
+**Q: How do I train on custom scenarios?**  
+A: Use the drift_gym environment with modified configurations. See `drift_gym/scenarios/scenario_generator.py`.
 
-| Link | Description |
-|------|-------------|
-| **[📍 PROJECT MAP](PROJECT_MAP.md)** | **Visual guide - how everything connects** |
-| [Complete Summary](COMPLETE_PROJECT_SUMMARY.md) | Everything in one document |
-| [Gym Improvements](DRIFT_GYM_IMPROVEMENTS.md) | What was fixed in gym environment |
-| [Website Guide](WEB_UI_GUIDE.md) | Website technical details |
-| [Research Results](comparison_results/RESULTS.md) | Benchmark results |
-| [Original IKD Paper](https://arxiv.org/abs/2402.14928) | arXiv paper |
+**Q: What documentation is available?**  
+A: Component-specific guides in `RESEARCH_GUIDE.md` (environment), `WEB_UI_GUIDE.md` (visualization), and `PROJECT_MAP.md` (overview).
+
+**Q: Is this suitable for hardware deployment?**  
+A: The simulation framework is complete. Hardware deployment requires IMU integration, motor control interfaces, and safety systems.
 
 ---
 
-**Last Updated:** October 2024  
-**Status:** ✅ Complete - All experiments reproducible  
-**Maintenance:** 🟢 Active
+## Acknowledgments
+
+- Original IKD methodology: Suvarna & Tehrani, 2024 ([arXiv:2402.14928](https://arxiv.org/abs/2402.14928))
+- SAC implementation: Jake Lourie ([deep-rl-algos](https://github.com/jakelourie1502/deep-rl-algos))
+- Core frameworks: PyTorch, Gymnasium, Pygame
+- Institutional support: UT Austin Autonomous Mobile Robotics Laboratory
 
 ---
 
-<p align="center">
-  <strong>⭐ If you find this useful, please star the repo! ⭐</strong>
-</p>
+## Contact
 
-<p align="center">
-  Made with 🏎️ by <a href="https://github.com/omeedcs">Omeed Tehrani</a>
-</p>
+Inquiries and collaboration proposals:
+- GitHub Issues: [github.com/omeedcs/autonomous-vehicle-drifting/issues](https://github.com/omeedcs/autonomous-vehicle-drifting/issues)
+- Email: omeed@cs.utexas.edu
+
+---
+
+## Quick Reference
+
+| Resource | Description |
+|----------|-------------|
+| [PROJECT_MAP.md](PROJECT_MAP.md) | Visual component relationship guide |
+| [RESEARCH_GUIDE.md](RESEARCH_GUIDE.md) | Complete technical documentation |
+| [QUICK_START_RESEARCH.md](QUICK_START_RESEARCH.md) | Environment quick start |
+| [WEB_UI_GUIDE.md](WEB_UI_GUIDE.md) | Visualization system documentation |
+| [comparison_results/RESULTS.md](comparison_results/RESULTS.md) | Empirical benchmark data |
+| [Original IKD Paper](https://arxiv.org/abs/2402.14928) | Referenced methodology |
+
+---
+
+**Status:** Production - All experiments reproducible  
+**Maintenance:** Active development  
+**Last Updated:** October 2025
+
+**Developed by Omeed Tehrani**
