@@ -4,7 +4,7 @@ Implements metrics specific to autonomous vehicle drifting tasks.
 """
 import numpy as np
 import torch
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 

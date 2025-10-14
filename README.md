@@ -51,6 +51,27 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
+### 🎮 **NEW: Simulator** (No Hardware Required!)
+
+Since you may not have access to physical F1/10 vehicles, use our high-fidelity simulator:
+
+```bash
+# Run circle navigation test
+python simulate.py --mode circle --velocity 2.0 --curvature 0.7
+
+# Test with trained IKD model
+python simulate.py --mode circle --use-ikd --model path/to/model.pt
+
+# Compare baseline vs IKD
+python simulate.py --mode circle --compare --model path/to/model.pt
+
+# Drift tests
+python simulate.py --mode drift-loose
+python simulate.py --mode drift-tight
+```
+
+See **[Simulator Guide](docs/SIMULATOR_GUIDE.md)** for full documentation.
+
 ### Train a Model (5 minutes)
 
 ```bash
@@ -243,6 +264,7 @@ The model performs well on loose drifting trajectories but struggles with tight 
 
 ### 🔧 Core Features
 
+- **High-Fidelity Simulator**: Test without hardware (F1/10 vehicle dynamics)
 - **YAML Configuration System**: Flexible experiment setup with inheritance
 - **Experiment Tracking**: Built-in logging with TensorBoard/W&B support
 - **Data Validation**: Automatic quality checks and anomaly detection
@@ -252,11 +274,13 @@ The model performs well on loose drifting trajectories but struggles with tight 
 
 ### 📊 Evaluation Tools
 
+- **Physics-based Simulator**: Ackerman steering, slip dynamics, sensor noise
 - Circle navigation metrics (Table I from paper)
 - Drift trajectory analysis (loose vs tight)
 - Curvature error computation
 - Angular velocity deviation metrics
 - Automated benchmark suite
+- Synthetic data generation
 
 ### 🧪 Testing & Quality
 
@@ -313,6 +337,7 @@ If you use this code in your research, please cite our paper:
 ## 📖 Documentation
 
 - **[Getting Started](docs/GETTING_STARTED.md)**: Installation and quick start guide
+- **[Simulator Guide](docs/SIMULATOR_GUIDE.md)**: Testing without hardware ⭐ **NEW**
 - **[Reproducing Paper](docs/REPRODUCING_PAPER.md)**: Step-by-step reproduction of paper results
 - **[Contributing](CONTRIBUTING.md)**: Contribution guidelines
 - **[Changelog](CHANGELOG.md)**: Version history and updates

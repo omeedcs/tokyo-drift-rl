@@ -82,6 +82,33 @@ evaluate-all:
 			--output-dir evaluation_results/$$dataset; \
 	done
 
+# Simulation
+simulate-circle:
+	python simulate.py --mode circle --velocity 2.0 --curvature 0.7 --save-data
+
+simulate-drift:
+	python simulate.py --mode drift-loose --duration 15.0 --save-data
+
+simulate-ikd:
+	python simulate.py \
+		--mode circle \
+		--velocity 2.0 \
+		--curvature 0.7 \
+		--use-ikd \
+		--model experiments/ikd_baseline/checkpoints/best_model.pt \
+		--save-data
+
+simulate-compare:
+	python simulate.py \
+		--mode circle \
+		--velocity 2.0 \
+		--curvature 0.7 \
+		--compare \
+		--model experiments/ikd_baseline/checkpoints/best_model.pt
+
+test-simulator:
+	pytest tests/test_simulator.py -v
+
 # Benchmarking
 benchmark:
 	python scripts/run_benchmarks.py

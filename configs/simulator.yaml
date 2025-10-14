@@ -1,0 +1,68 @@
+# Simulator Configuration
+# For testing without physical hardware
+
+# Simulation Parameters
+simulation:
+  dt: 0.05  # Simulation timestep (seconds)
+  enable_slip: true  # Enable tire slip dynamics for drifting
+  add_sensor_noise: true  # Add realistic sensor noise
+  
+# Vehicle Parameters (UT AUTOmata F1/10)
+vehicle:
+  wheelbase: 0.324  # meters
+  vehicle_width: 0.48  # meters (19 inches)
+  max_speed: 4.219  # m/s (ERPM-limited)
+  accel_limit: 6.0  # m/s^2
+  max_turn_rate: 0.25  # radians
+  
+  # Tire friction (for slip modeling)
+  mu_static: 0.9
+  mu_kinetic: 0.7
+  slip_threshold: 3.0  # rad/s
+  
+  # Motor and servo parameters
+  speed_to_erpm_gain: 5356
+  speed_to_erpm_offset: 180.0
+  erpm_speed_limit: 22000
+  steering_to_servo_gain: -0.9015
+  steering_to_servo_offset: 0.57
+
+# Sensor Configuration
+sensors:
+  imu:
+    noise_std: 0.01  # rad/s
+    bias: 0.0  # rad/s
+    delay: 0.18  # seconds (average from paper)
+    sample_rate: 40.0  # Hz
+  
+  velocity:
+    noise_std: 0.001  # m/s
+  
+  odometry:
+    position_noise_std: 0.01  # meters
+    heading_noise_std: 0.01  # radians
+
+# Test Scenarios
+scenarios:
+  circle_navigation:
+    velocity: 2.0  # m/s
+    curvatures: [0.12, 0.63, 0.70, 0.80]  # From Table I
+    duration: 10.0  # seconds
+    
+  loose_drifting:
+    turbo_speed: 5.0  # m/s
+    cone_spacing: 2.13  # meters (84 inches)
+    duration: 15.0  # seconds
+    
+  tight_drifting:
+    turbo_speed: 5.0  # m/s
+    cone_spacing: 0.81  # meters (32 inches)
+    duration: 15.0  # seconds
+
+# Output Configuration
+output:
+  save_plots: true
+  save_data: true
+  plot_format: "png"
+  data_format: "csv"
+  output_dir: "./simulation_results"

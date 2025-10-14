@@ -11,12 +11,19 @@ pyyaml>=5.4.0
 # Metrics and evaluation
 scikit-learn>=0.24.0
 
+# Simulator dependencies
+psutil>=5.8.0  # For system info in benchmarks
+
 # Optional: Experiment tracking
 # tensorboard>=2.8.0
 # wandb>=0.12.0
 
 # Optional: ROS bag processing
 # pyrosbag>=0.1.0
+
+# Optional: Animation support for simulator
+# pillow>=8.0.0  # For GIF animations
+# ffmpeg-python>=0.2.0  # For MP4 animations
 
 # Development dependencies (for testing)
 pytest>=7.0.0
