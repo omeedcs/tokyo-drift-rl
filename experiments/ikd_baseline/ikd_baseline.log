@@ -1,0 +1,6 @@
+2025-10-14 02:41:06 - ikd_baseline - INFO - ================================================================================
+2025-10-14 02:41:06 - ikd_baseline - INFO - Training Inverse Kinodynamic Model for Autonomous Vehicle Drifting
+2025-10-14 02:41:06 - ikd_baseline - INFO - Based on: Suvarna & Tehrani, 2024
+2025-10-14 02:41:06 - ikd_baseline - INFO - ================================================================================
+2025-10-14 02:41:06 - ikd_baseline - INFO - Configuration saved to experiments/ikd_baseline/config.yaml
+2025-10-14 02:41:06 - ikd_baseline - INFO - Loading data from data/ikd_real_data.npz

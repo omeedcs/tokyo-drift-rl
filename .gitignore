@@ -12,8 +12,8 @@ build/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# PyTorch Models
-*.pt
+# PyTorch Models (exclude, but keep trained_models/ and dc_saves/)
+# *.pt  # Commented out - we keep trained models for reproducibility
 
 # macOS
 .DS_Store
@@ -32,17 +32,25 @@ ENV/
 *.swp
 *.swo
 
-# Data files (large)
+# Data files (large datasets, but keep generated data/)
 *.bag
-*.csv
-dataset/*.csv
 bag-files-and-data/
 
-# Plots
-*.png
-*.jpg
-*.pdf
+# Plots (exclude, but keep comparison_results/ and ikd_test_results/)
+# *.png  # Commented out - we keep result plots
+# *.jpg
+# *.pdf
 
 # Temporary files
 *.tmp
-*.log
+sac_training.log
+*.pyc
+
+# Node modules (for drift-showcase)
+node_modules/
+drift-showcase/.next/
+drift-showcase/out/
+
+# Backup files
+*.backup
+*~
