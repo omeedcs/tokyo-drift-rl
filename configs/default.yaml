@@ -1,0 +1,94 @@
+# Default Configuration for IKD Training
+# Based on "Learning Inverse Kinodynamics for Autonomous Vehicle Drifting"
+# Suvarna & Tehrani, 2024
+
+# Data Configuration
+data:
+  train_path: "./dataset/ikddata2.csv"
+  test_datasets:
+    loose_ccw: "./dataset/loose_ccw.csv"
+    loose_cw: "./dataset/loose_cw.csv"
+    tight_ccw: "./dataset/tight_ccw.csv"
+    tight_cw: "./dataset/tight_cw.csv"
+  train_split: 0.9
+  test_split: 0.1
+  remove_zero_curvature: true
+  shuffle: true
+  random_seed: 42
+
+# Model Configuration
+model:
+  name: "IKDModel"
+  input_dim: 2  # [velocity, true_angular_velocity]
+  output_dim: 1  # [predicted_joystick_angular_velocity]
+  hidden_dim: 32
+  num_layers: 2
+  activation: "relu"
+  dropout: 0.0
+
+# Training Configuration
+training:
+  epochs: 50
+  batch_size: 32
+  learning_rate: 1.0e-5
+  weight_decay: 1.0e-3
+  optimizer: "adam"
+  loss_function: "mse"
+  gradient_clip: null
+  early_stopping:
+    enabled: false
+    patience: 10
+    min_delta: 1.0e-4
+  
+  # Device Configuration
+  device: "auto"  # auto, cuda, mps, cpu
+  num_workers: 4
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "mse"
+    - "mae"
+    - "rmse"
+    - "r2"
+    - "curvature_error"
+  save_predictions: true
+  plot_results: true
+
+# Experiment Tracking
+experiment:
+  name: "ikd_baseline"
+  output_dir: "./experiments"
+  save_model: true
+  save_frequency: 10  # epochs
+  log_frequency: 1  # epochs
+  tensorboard: false
+  wandb:
+    enabled: false
+    project: "autonomous-vehicle-drifting"
+    entity: null
+
+# Vehicle Configuration (UT AUTOmata F1/10)
+vehicle:
+  wheelbase: 0.324  # meters
+  max_speed: 4.219  # meters/second (capped by ERPM)
+  max_angular_velocity: 4.0  # rad/s
+  speed_to_erpm_gain: 5356
+  speed_to_erpm_offset: 180.0
+  steering_to_servo_gain: -0.9015
+  steering_to_servo_offset: 0.57
+
+# Data Processing Configuration
+processing:
+  imu_delay_range: [-1.0, 1.0]
+  imu_delay_steps: 1001
+  interpolation_frequency: 20  # Hz
+  alignment_method: "least_squares"
+
+# Visualization Configuration
+visualization:
+  dpi: 300
+  figsize: [10, 6]
+  style: "seaborn-v0_8"
+  save_format: "png"
+  show_plots: false

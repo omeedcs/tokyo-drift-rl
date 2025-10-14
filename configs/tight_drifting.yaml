@@ -1,0 +1,36 @@
+# Configuration for Tight Drifting Experiments
+# Replicates experiments from Section IV-D2 of the paper
+
+# Inherit from default config
+_base_: default.yaml
+
+# Experiment Configuration
+experiment:
+  name: "tight_drifting"
+  output_dir: "./experiments"
+  save_model: true
+
+# Data Configuration - Tight drifting specific
+data:
+  train_path: "./dataset/tight_drifting_train.csv"
+  test_datasets:
+    tight_ccw: "./dataset/tight_ccw.csv"
+    tight_cw: "./dataset/tight_cw.csv"
+
+# Training Configuration
+training:
+  epochs: 75  # More epochs for harder task
+  batch_size: 32
+  learning_rate: 5.0e-6  # Lower learning rate for stability
+  early_stopping:
+    enabled: true
+    patience: 15
+    min_delta: 1.0e-5
+
+# Notes from paper:
+# - Spacing: 32 inches (0.81 meters) between cone and box
+# - Vehicle width: 19 inches (0.48 meters)
+# - Turbo speed: 5.0 m/s
+# - 15 minutes of data collection
+# - Extremely tight curvatures
+# - Challenge: Model struggles with tight trajectories

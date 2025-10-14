@@ -1,0 +1,39 @@
+# Configuration for Circle Navigation Experiments
+# Replicates experiments from Section IV-C of the paper
+
+# Inherit from default config
+_base_: default.yaml
+
+# Experiment Configuration
+experiment:
+  name: "circle_navigation"
+  output_dir: "./experiments"
+  save_model: true
+
+# Data Configuration - Circle navigation at 2.0 m/s
+data:
+  train_path: "./dataset/turning_data_merged.csv"
+  test_datasets:
+    circle_test: "./dataset/circle_test.csv"
+
+# Training Configuration
+training:
+  epochs: 50
+  batch_size: 32
+  learning_rate: 1.0e-5
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "mse"
+    - "mae"
+    - "curvature_error"
+  # Circle-specific evaluation parameters
+  circle_test:
+    velocity: 2.0  # m/s
+    curvatures: [0.12, 0.63, 0.70, 0.80]  # Test curvatures from Table I
+
+# Expected Results (from paper):
+# Commanded: 0.12m -> IKD Corrected: 0.1172m (2.33% deviation)
+# Commanded: 0.63m -> IKD Corrected: 0.6293m (0.11% deviation)
+# Commanded: 0.80m -> IKD Corrected: 0.8142m (1.78% deviation)

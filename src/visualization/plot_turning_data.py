@@ -1,16 +1,11 @@
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import numpy as np
 import torch
-from scipy.io import loadmat
 import torch.nn as nn
 import torch.nn.functional as F
-import pandas as pd
-from ikd_training import IKDModel
-# import plt
-import matplotlib.pyplot as plt
+from scipy.io import loadmat
+from src.models.ikd_model import IKDModel
 
 """
 Extracting the data out of the folder.

@@ -1,0 +1,31 @@
+# Configuration for Loose Drifting Experiments
+# Replicates experiments from Section IV-D1 of the paper
+
+# Inherit from default config
+_base_: default.yaml
+
+# Experiment Configuration
+experiment:
+  name: "loose_drifting"
+  output_dir: "./experiments"
+  save_model: true
+
+# Data Configuration - Loose drifting specific
+data:
+  train_path: "./dataset/loose_drifting_train.csv"
+  test_datasets:
+    loose_ccw: "./dataset/loose_ccw.csv"
+    loose_cw: "./dataset/loose_cw.csv"
+
+# Training Configuration
+training:
+  epochs: 50
+  batch_size: 32
+  learning_rate: 1.0e-5
+
+# Notes from paper:
+# - 2 cones and 2 boxes, each 2.13 meters apart
+# - Turbo speed set to 5.0 m/s
+# - 10 minutes of teleoperation data
+# - Counter-clockwise direction primarily
+# - Expected improvement: 100% tightened turn rate for CCW

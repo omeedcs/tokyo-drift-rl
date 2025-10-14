@@ -6,8 +6,8 @@ import torch.nn.functional as F
 import pandas as pd
 import sys
 import os
-from ikd_model import IKDModel
 import matplotlib.pyplot as plt
+from src.models.ikd_model import IKDModel
 
 # NOTE: shell taken from the inverse kinodynamic training code:
 # https://github.com/ut-amrl/ikd/blob/main/ikd_training.py
@@ -80,27 +80,29 @@ if __name__ == '__main__':
 
         model.eval()
         test_loss = 0
-        for i in range(0, N_test, batch_size):    
-
-            opt.zero_grad() 
-
-            joystick_v_tens = torch.FloatTensor(joystick_v[i:min(i + batch_size, N_train)])
-            joystick_av_tens = torch.FloatTensor(joystick_av[i:min(i + batch_size, N_train)])
-            true_av_tens = torch.FloatTensor(true_av[i:min(i + batch_size, N_train)])
-            
-            jv = joystick_v_tens.view(-1, 1)
-            jav = joystick_av_tens.view(-1, 1)
-            tav = true_av_tens.view(-1, 1)
-            
-            input = torch.cat([jv, tav], dim = -1)
-
-            output = model(input)
-            loss = F.mse_loss(output, jav)
-            loss.backward()
-            opt.step()
-            test_loss += loss.item()
+        
+        # Test data
+        test_joystick_v = data_test[:, 0]
+        test_joystick_av = data_test[:, 1]
+        test_true_av = data_test[:, 2]
+        
+        with torch.no_grad():
+            for i in range(0, N_test, batch_size):
+                joystick_v_tens = torch.FloatTensor(test_joystick_v[i:min(i + batch_size, N_test)])
+                joystick_av_tens = torch.FloatTensor(test_joystick_av[i:min(i + batch_size, N_test)])
+                true_av_tens = torch.FloatTensor(test_true_av[i:min(i + batch_size, N_test)])
+                
+                jv = joystick_v_tens.view(-1, 1)
+                jav = joystick_av_tens.view(-1, 1)
+                tav = true_av_tens.view(-1, 1)
+                
+                input = torch.cat([jv, tav], dim = -1)
+                output = model(input)
+                loss = F.mse_loss(output, jav)
+                test_loss += loss.item()
+        
         testing_loss.append(test_loss / (N_test // batch_size))
-        print("[INFO] epoch {} | loss {:10.4f}".format(ep, test_loss / (N_test // batch_size)))
+        print("[INFO] Test epoch {} | loss {:10.4f}".format(ep, test_loss / (N_test // batch_size)))
         torch.save(model.state_dict(), "ikddata2.pt")
     print("[INFO] Training complete. Model saved as 'ikddata2.pt")
     print("[INFO] Plotting loss values...")

@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Learning Inverse Kinodynamics for Autonomous Vehicle Drifting"
+authors:
+  - family-names: "Suvarna"
+    given-names: "Mihir"
+    email: "msuvarna@cs.utexas.edu"
+    affiliation: "University of Texas at Austin"
+  - family-names: "Tehrani"
+    given-names: "Omeed"
+    email: "omeed@cs.utexas.edu"
+    affiliation: "University of Texas at Austin"
+repository-code: "https://github.com/msuv08/autonomous-vehicle-drifting"
+url: "https://arxiv.org/abs/2402.14928"
+license: "CC-BY-4.0"
+version: "1.0.0"
+date-released: "2024-02-22"
+keywords:
+  - autonomous-vehicles
+  - drifting
+  - inverse-kinodynamics
+  - robotics
+  - machine-learning
+  - motion-planning
+  - F1/10
+preferred-citation:
+  type: article
+  title: "Learning Inverse Kinodynamics for Autonomous Vehicle Drifting"
+  authors:
+    - family-names: "Suvarna"
+      given-names: "Mihir"
+    - family-names: "Tehrani"
+      given-names: "Omeed"
+  journal: "arXiv preprint"
+  year: 2024
+  month: 2
+  identifiers:
+    - type: "arxiv"
+      value: "2402.14928"

@@ -3,8 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-from interpolation import get_value_at_time
-from extractors import extract_imu_data, extract_joystick_data
+from src.data_processing.interpolation import get_value_at_time
+from src.data_processing.extractors import extract_imu_data, extract_joystick_data
 
 """
 This function writes the training data to a CSV file.
