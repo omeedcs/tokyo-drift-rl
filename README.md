@@ -1,121 +1,179 @@
 # Learning Inverse Kinodynamics for Autonomous Vehicle Drifting
 
-A research project implementing modified Inverse Kinodynamic Learning for safe slippage and tight turning in autonomous drifting scenarios.
+[![Paper](https://img.shields.io/badge/arXiv-2402.14928-b31b1b.svg)](https://arxiv.org/abs/2402.14928)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-1.10+-ee4c2c.svg)](https://pytorch.org/)
 
-## Overview
+**Official Implementation** | [Paper](https://arxiv.org/abs/2402.14928) | [Getting Started](docs/GETTING_STARTED.md) | [Reproduce Results](docs/REPRODUCING_PAPER.md)
 
-This work demonstrates that a simple neural network architecture can effectively learn inverse kinodynamics for loose drifting trajectories. However, tight trajectories present challenges where the vehicle undershoots during test time. The research emphasizes the critical importance of data quality and evaluation in learning inverse kinodynamic functions.
+A research-grade PyTorch implementation of Inverse Kinodynamic Learning for autonomous vehicle drifting on F1/10 scale vehicles. This repository provides a complete framework for training, evaluating, and deploying IKD models with comprehensive experiment tracking and reproducibility tools.
 
-### Key Findings
-- ✅ Effective for loose drifting trajectories
-- ⚠️ Performance degrades on tight turning trajectories
-- 📊 Data quality and diversity are essential
-- 🧠 Simple architecture (2 hidden layers, 32 units each) is sufficient
+<p align="center">
+  <img src="training_loss.png" alt="Training Results" width="600"/>
+</p>
 
-## Table of Contents
-- [Installation](#installation)
-- [Project Structure](#project-structure)
-- [Usage](#usage)
-- [Model Architecture](#model-architecture)
-- [Problem Formulation](#problem-formulation)
-- [Dataset](#dataset)
-- [Results](#results)
+## 🎯 Overview
 
-## Installation
+This work demonstrates that a **simple neural network** can learn inverse kinodynamics for autonomous drifting, enabling vehicles to:
+- ✅ Correct commanded trajectories in real-time
+- ✅ Navigate circular paths with <2.5% error
+- ✅ Tighten loose drifts with 100% success rate (CCW)
+- ⚠️ Handle tight trajectories (ongoing research area)
 
-### Requirements
-- Python 3.8+
-- PyTorch 1.10+
-- ROS (for bag file processing)
+### Key Contributions
 
-### Setup
+1. **Data-Driven Approach**: Learn vehicle dynamics from IMU + joystick data
+2. **Simple & Effective**: 2-layer network with 32 hidden units achieves strong results
+3. **Comprehensive Evaluation**: Circle navigation, loose drifts, tight drifts
+4. **Open Source**: Complete codebase with experiment tracking and reproducibility tools
+
+### Research Findings
+
+- 📊 **Data quality** is more important than model complexity
+- 🔄 **Curvature diversity** in training data is essential
+- ⚡ **Fast convergence**: 10-20 epochs typically sufficient
+- 🎯 **Works best** on medium-to-loose trajectories
+
+## 🚀 Quick Start
+
+### Installation
+
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/msuv08/autonomous-vehicle-drifting.git
 cd autonomous-vehicle-drifting
 
-# Install dependencies
-pip install -r requirements.txt
+# Install package
+pip install -e .
+
+# Or with development tools
+pip install -e ".[dev]"
 ```
 
-## Project Structure
+### Train a Model (5 minutes)
 
-```
-.
-├── src/
-│   ├── models/              # Neural network models and training
-│   │   ├── ikd_model.py     # IKD model definition
-│   │   ├── ikd_training.py  # Training script
-│   │   ├── make_predictions.py  # Inference script
-│   │   └── trace_trained_model.py
-│   ├── data_processing/     # Data extraction and alignment
-│   │   ├── align.py         # Time alignment
-│   │   ├── bag_to_csv.py    # ROS bag conversion
-│   │   ├── extractors.py    # IMU/joystick extraction
-│   │   ├── interpolation.py # Time interpolation
-│   │   └── merge_csv.py     # Data merging
-│   ├── visualization/       # Plotting and analysis
-│   │   ├── graph.py
-│   │   ├── graph_training_data.py
-│   │   ├── plot_drifting_data.py
-│   │   └── plot_turning_data.py
-│   └── utils/              # Utility scripts
-├── dataset/                # Training and test data
-├── vehicle edits/          # Vehicle configuration files
-├── navigation.cc           # C++ navigation code
-├── vesc_driver.cpp         # VESC driver code
-└── README.md
-```
-
-## Usage
-
-### 1. Data Processing
-
-Convert ROS bag files to CSV:
 ```bash
-cd bag-files-and-data/
-python ../src/data_processing/bag_to_csv.py <bagfile.bag>
+# Train with default configuration
+python train.py
+
+# Or with custom config
+python train.py --config configs/loose_drifting.yaml --experiment-name my_experiment
 ```
 
-Align and merge training data:
+### Evaluate Performance
+
+```bash
+# Evaluate on all test datasets
+python evaluate.py \
+  --checkpoint experiments/ikd_baseline/checkpoints/best_model.pt \
+  --plot-results
+
+# Run comprehensive benchmarks
+python scripts/run_benchmarks.py
+```
+
+### Run Tests
+
+```bash
+pytest tests/
+```
+
+See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructions.
+
+## 📁 Project Structure
+
+```
+autonomous-vehicle-drifting/
+├── configs/                    # Configuration files (YAML)
+│   ├── default.yaml           # Default training config
+│   ├── loose_drifting.yaml    # Loose drift experiments
+│   ├── tight_drifting.yaml    # Tight drift experiments
+│   └── circle_navigation.yaml # Circle test config
+├── src/
+│   ├── models/                # Neural network models
+│   │   ├── ikd_model.py       # IKD architecture
+│   │   ├── trainer.py         # Training loop with tracking
+│   │   └── ...
+│   ├── data_processing/       # Data pipeline
+│   │   ├── validators.py      # Data quality checks
+│   │   ├── align.py          # IMU-joystick alignment
+│   │   └── ...
+│   ├── evaluation/           # Metrics and evaluation
+│   │   └── metrics.py        # IKD-specific metrics
+│   ├── visualization/        # Plotting utilities
+│   │   └── plot_results.py   # Result visualization
+│   └── utils/               # Utilities
+│       ├── config.py        # Config management
+│       └── logger.py        # Experiment logging
+├── tests/                   # Unit tests
+├── docs/                    # Documentation
+│   ├── GETTING_STARTED.md  # Tutorial
+│   └── REPRODUCING_PAPER.md # Reproduction guide
+├── scripts/                # Helper scripts
+│   └── run_benchmarks.py  # Benchmark suite
+├── train.py               # Main training script
+├── evaluate.py            # Evaluation script
+└── setup.py              # Package installation
+
+```
+
+## 🎓 Usage
+
+### Training
+
+**Basic training:**
+```bash
+python train.py
+```
+
+**Advanced options:**
+```bash
+python train.py \
+  --config configs/loose_drifting.yaml \
+  --experiment-name loose_drift_v1 \
+  --epochs 100 \
+  --batch-size 64 \
+  --validate-data
+```
+
+**With experiment tracking:**
+```bash
+# Enable TensorBoard
+tensorboard --logdir experiments/
+
+# Or use Weights & Biases (configure in config.yaml)
+python train.py --config configs/wandb_enabled.yaml
+```
+
+### Evaluation
+
+**Evaluate single model:**
+```bash
+python evaluate.py \
+  --checkpoint path/to/model.pt \
+  --dataset dataset/loose_ccw.csv \
+  --save-predictions \
+  --plot-results
+```
+
+**Reproduce paper results:**
+```bash
+# See detailed guide
+cat docs/REPRODUCING_PAPER.md
+```
+
+### Data Processing
+
+**Convert ROS bags:**
+```bash
+python src/data_processing/bag_to_csv.py my_data.bag
+```
+
+**Align and validate:**
 ```bash
 python src/data_processing/align.py
-python src/data_processing/merge_csv.py
-```
-
-### 2. Training
-
-Train the IKD model:
-```bash
-python src/models/ikd_training.py
-```
-
-The training script will:
-- Load data from `dataset/ikddata2.csv`
-- Split into 90% train / 10% test
-- Train for 50 epochs with batch size 32
-- Save model weights to `ikddata2.pt`
-- Display training/testing loss curves
-
-### 3. Inference
-
-Make predictions on test datasets:
-```bash
-python src/models/make_predictions.py
-```
-
-This will generate plots for all available test trajectories:
-- Loose counter-clockwise (CCW)
-- Loose clockwise (CW)
-- Tight CCW
-- Tight CW
-
-### 4. Visualization
-
-Plot training data characteristics:
-```bash
-python src/visualization/graph_training_data.py
-python src/visualization/plot_turning_data.py
+python train.py --validate-data  # Check data quality
 ```
 
 ## Model Architecture
@@ -181,18 +239,114 @@ The model performs well on loose drifting trajectories but struggles with tight 
 2. Potential architecture limitations for high-curvature scenarios
 3. The importance of data quality over model complexity
 
-## Future Work
+##  Features
 
-- 🔄 Collect more diverse training data with varied curvatures
-- 📡 Incorporate additional sensor modalities (LiDAR, RealSense)
-- 🎯 Explore architectures better suited for tight trajectories
-- ⚙️ Implement real-time deployment on autonomous vehicles
+### 🔧 Core Features
 
-## References
+- **YAML Configuration System**: Flexible experiment setup with inheritance
+- **Experiment Tracking**: Built-in logging with TensorBoard/W&B support
+- **Data Validation**: Automatic quality checks and anomaly detection
+- **Comprehensive Metrics**: IKD-specific evaluation metrics
+- **Model Checkpointing**: Automatic best model saving and recovery
+- **Reproducibility**: Fixed seeds, config versioning, benchmark scripts
 
-Inspired by the UT AUTOmata Inverse Kinodynamics work:
-- GitHub: [ut-amrl/ikd](https://github.com/ut-amrl/ikd)
+### 📊 Evaluation Tools
 
-## License
+- Circle navigation metrics (Table I from paper)
+- Drift trajectory analysis (loose vs tight)
+- Curvature error computation
+- Angular velocity deviation metrics
+- Automated benchmark suite
 
-Open-sourced for research and educational purposes.
+### 🧪 Testing & Quality
+
+- Unit tests for all core components
+- Data validation pipeline
+- Continuous integration ready
+- Code coverage tracking
+
+## 📈 Results
+
+### Circle Navigation (Table I from Paper)
+
+| Commanded Curvature | IKD-Corrected | Deviation |
+|---------------------|---------------|-----------|
+| 0.12 m              | 0.1172 m      | **2.33%** |
+| 0.63 m              | 0.6293 m      | **0.11%** |
+| 0.80 m              | 0.8142 m      | **1.78%** |
+
+### Loose Drifting (Table II from Paper)
+
+| Direction | Turn Tightening | IKD Improvement |
+|-----------|-----------------|-----------------|
+| CCW       | **100%**        | Noticeable      |
+| CW        | 50%             | Non-noticeable  |
+
+See [REPRODUCING_PAPER.md](docs/REPRODUCING_PAPER.md) for full reproduction guide.
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Ways to Contribute
+
+- 🐛 Report bugs and issues
+- 📝 Improve documentation
+- 🎯 Add new features or models
+- 📊 Share your experimental results
+- 🧪 Add more test coverage
+- 🚗 Deploy on new vehicle platforms
+
+## 📚 Citation
+
+If you use this code in your research, please cite our paper:
+
+```bibtex
+@article{suvarna2024learning,
+  title={Learning Inverse Kinodynamics for Autonomous Vehicle Drifting},
+  author={Suvarna, Mihir and Tehrani, Omeed},
+  journal={arXiv preprint arXiv:2402.14928},
+  year={2024}
+}
+```
+
+## 📖 Documentation
+
+- **[Getting Started](docs/GETTING_STARTED.md)**: Installation and quick start guide
+- **[Reproducing Paper](docs/REPRODUCING_PAPER.md)**: Step-by-step reproduction of paper results
+- **[Contributing](CONTRIBUTING.md)**: Contribution guidelines
+- **[Changelog](CHANGELOG.md)**: Version history and updates
+
+## 🙏 Acknowledgments
+
+Special thanks to:
+- **UT AMRL Laboratory** for providing resources and F1/10 vehicles
+- **Dr. Joydeep Biswas** for guidance and support
+- **Pranav, Rahul, and Arnav** for technical assistance
+
+This work builds upon the foundational IKD research:
+- [Learning Inverse Kinodynamics for Accurate High-Speed Off-Road Navigation](https://github.com/ut-amrl/ikd)
+
+## 📄 License
+
+This project is licensed under the **Creative Commons Attribution 4.0 International License (CC BY 4.0)**.
+
+See [LICENSE](LICENSE) for details.
+
+## 🔗 Links
+
+- **Paper**: https://arxiv.org/abs/2402.14928
+- **GitHub**: https://github.com/msuv08/autonomous-vehicle-drifting
+- **Issues**: https://github.com/msuv08/autonomous-vehicle-drifting/issues
+- **UT AMRL**: https://amrl.cs.utexas.edu/
+
+## 📧 Contact
+
+- **Mihir Suvarna**: msuvarna@cs.utexas.edu
+- **Omeed Tehrani**: omeed@cs.utexas.edu
+
+---
+
+<p align="center">
+  Made with ❤️ at the University of Texas at Austin
+</p>
