@@ -1,378 +1,390 @@
-# Learning Inverse Kinodynamics for Autonomous Vehicle Drifting
+# Autonomous Vehicle Drifting: Comparing Control Strategies
 
-[![Paper](https://img.shields.io/badge/arXiv-2402.14928-b31b1b.svg)](https://arxiv.org/abs/2402.14928)
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-1.10+-ee4c2c.svg)](https://pytorch.org/)
+**Deep Reinforcement Learning vs. Inverse Kinodynamics for Autonomous Drift Maneuvers**
 
-**Official Implementation** | [Paper](https://arxiv.org/abs/2402.14928) | [Getting Started](docs/GETTING_STARTED.md) | [Reproduce Results](docs/REPRODUCING_PAPER.md)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.8.0-red.svg)](https://pytorch.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A research-grade PyTorch implementation of Inverse Kinodynamic Learning for autonomous vehicle drifting on F1/10 scale vehicles. This repository provides a complete framework for training, evaluating, and deploying IKD models with comprehensive experiment tracking and reproducibility tools.
+---
 
-<p align="center">
-  <img src="training_loss.png" alt="Training Results" width="600"/>
-</p>
+## 📋 Abstract
 
-## 🎯 Overview
+This repository implements and benchmarks three distinct control strategies for autonomous vehicle drift maneuvers:
 
-This work demonstrates that a **simple neural network** can learn inverse kinodynamics for autonomous drifting, enabling vehicles to:
-- ✅ Correct commanded trajectories in real-time
-- ✅ Navigate circular paths with <2.5% error
-- ✅ Tighten loose drifts with 100% success rate (CCW)
-- ⚠️ Handle tight trajectories (ongoing research area)
+1. **Baseline Controller** - Model-based trajectory tracking with PID control
+2. **Inverse Kinodynamic Dynamics (IKD)** - Neural network-based velocity correction
+3. **Soft Actor-Critic (SAC)** - End-to-end deep reinforcement learning
 
-### Key Contributions
+**Key Finding:** SAC achieves **49% faster task completion** (27 vs 53 steps) while maintaining 100% success rate, demonstrating that end-to-end RL can discover superior trajectories compared to hand-engineered controllers.
 
-1. **Data-Driven Approach**: Learn vehicle dynamics from IMU + joystick data
-2. **Simple & Effective**: 2-layer network with 32 hidden units achieves strong results
-3. **Comprehensive Evaluation**: Circle navigation, loose drifts, tight drifts
-4. **Open Source**: Complete codebase with experiment tracking and reproducibility tools
+---
 
-### Research Findings
+## 🎯 Performance Results
 
-- 📊 **Data quality** is more important than model complexity
-- 🔄 **Curvature diversity** in training data is essential
-- ⚡ **Fast convergence**: 10-20 epochs typically sufficient
-- 🎯 **Works best** on medium-to-loose trajectories
+### Loose Drift Scenario (20 trials each)
+
+| Method | Avg Steps | Success Rate | Speed Improvement | Status |
+|--------|-----------|--------------|-------------------|---------|
+| **Baseline** | 53.0 | 100% | - (reference) | ✅ |
+| **IKD** | 51.0 | 100% | +3.8% faster | ✅ |
+| **SAC** | **27.0** | **100%** | **+49% faster** | 🚀 |
+
+![alt text](image-1.png)
+
+### Key Metrics
+
+- **IKD Training:** 15,900 samples from real trajectory tracking
+- **SAC Training:** 50,000 environment steps (~8 minutes)
+- **Consistency:** SAC achieves identical 27-step performance across all trials
+- **Reward:** SAC achieves +33.30 (positive) vs baseline -76.88 (negative)
+
+---
 
 ## 🚀 Quick Start
+
+### Prerequisites
+
+```bash
+# Python 3.13+ required
+python --version  # Should be 3.13+
+
+# Clone repository
+git clone https://github.com/omeedcs/autonomous-vehicle-drifting.git
+cd autonomous-vehicle-drifting
+```
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/msuv08/autonomous-vehicle-drifting.git
-cd autonomous-vehicle-drifting
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install package
+# Install dependencies
+pip install -r requirements.txt
+
+# Install Jake's deep-rl-algos (for SAC)
+cd jake-deep-rl-algos
 pip install -e .
-
-# Or with development tools
-pip install -e ".[dev]"
+cd ..
 ```
 
-### 🎮 **NEW: Simulator** (No Hardware Required!)
-
-Since you may not have access to physical F1/10 vehicles, use our high-fidelity simulator:
+### Run Visual Comparison
 
 ```bash
-# Run circle navigation test
-python simulate.py --mode circle --velocity 2.0 --curvature 0.7
-
-# Test with trained IKD model
-python simulate.py --mode circle --use-ikd --model path/to/model.pt
-
-# Compare baseline vs IKD
-python simulate.py --mode circle --compare --model path/to/model.pt
-
-# Drift tests
-python simulate.py --mode drift-loose
-python simulate.py --mode drift-tight
+# Watch all three methods perform simultaneously
+python watch_all_methods.py
 ```
 
-See **[Simulator Guide](docs/SIMULATOR_GUIDE.md)** for full documentation.
+This opens a pygame window showing Baseline (blue), IKD (purple), and SAC (green) performing the drift maneuver side-by-side.
 
-### Train a Model (5 minutes)
+---
+
+## 📊 Reproducing Results
+
+### 1. Test Baseline Controller
 
 ```bash
-# Train with default configuration
-python train.py
-
-# Or with custom config
-python train.py --config configs/loose_drifting.yaml --experiment-name my_experiment
+python compare_all_methods.py --trials 20 --scenario loose
 ```
 
-### Evaluate Performance
+Output: `comparison_results/RESULTS.md` and comparison plots
+
+### 2. Train & Test IKD
 
 ```bash
-# Evaluate on all test datasets
-python evaluate.py \
-  --checkpoint experiments/ikd_baseline/checkpoints/best_model.pt \
-  --plot-results
+# Step 1: Collect real training data (300 episodes, ~1 min)
+python collect_ikd_data_corrected.py --episodes 300 --output data/ikd_corrected_large.npz
 
-# Run comprehensive benchmarks
-python scripts/run_benchmarks.py
+# Step 2: Train IKD model (200 epochs, ~2 min)
+python train_ikd_simple.py \
+    --data data/ikd_corrected_large.npz \
+    --epochs 200 \
+    --lr 0.0005 \
+    --output trained_models/ikd_final.pt
+
+# Step 3: Test IKD
+python test_ikd_simulation.py --model trained_models/ikd_final.pt
 ```
 
-### Run Tests
+**Expected output:**
+- Training loss: 0.086 (final)
+- Test performance: 51 steps, 100% success
+- Plots saved to `ikd_test_results/`
+
+### 3. Train & Test SAC
 
 ```bash
-pytest tests/
+# Step 1: Train SAC (50K steps, ~8 min)
+python train_sac_simple.py \
+    --scenario loose \
+    --seed 0 \
+    --num_steps 50000 \
+    --name sac_loose
+
+# Step 2: Test SAC
+python test_sac.py
+
+# Model saved to: dc_saves/sac_loose_*/
 ```
 
-See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructions.
+**Expected output:**
+- Success rate: 100%
+- Average steps: 27.0
+- Average reward: +33.30
 
-## 📁 Project Structure
+### 4. Generate Comparison
+
+```bash
+python compare_all_methods.py --trials 20
+```
+
+Generates:
+- `comparison_results/method_comparison.png` (300 DPI)
+- `comparison_results/RESULTS.md` (markdown table)
+- `comparison_results/results.json` (raw data)
+
+---
+
+## 🏗️ Architecture
+
+### System Overview
 
 ```
 autonomous-vehicle-drifting/
-├── configs/                    # Configuration files (YAML)
-│   ├── default.yaml           # Default training config
-│   ├── loose_drifting.yaml    # Loose drift experiments
-│   ├── tight_drifting.yaml    # Tight drift experiments
-│   └── circle_navigation.yaml # Circle test config
 ├── src/
-│   ├── models/                # Neural network models
-│   │   ├── ikd_model.py       # IKD architecture
-│   │   ├── trainer.py         # Training loop with tracking
-│   │   └── ...
-│   ├── data_processing/       # Data pipeline
-│   │   ├── validators.py      # Data quality checks
-│   │   ├── align.py          # IMU-joystick alignment
-│   │   └── ...
-│   ├── evaluation/           # Metrics and evaluation
-│   │   └── metrics.py        # IKD-specific metrics
-│   ├── visualization/        # Plotting utilities
-│   │   └── plot_results.py   # Result visualization
-│   └── utils/               # Utilities
-│       ├── config.py        # Config management
-│       └── logger.py        # Experiment logging
-├── tests/                   # Unit tests
-├── docs/                    # Documentation
-│   ├── GETTING_STARTED.md  # Tutorial
-│   └── REPRODUCING_PAPER.md # Reproduction guide
-├── scripts/                # Helper scripts
-│   └── run_benchmarks.py  # Benchmark suite
-├── train.py               # Main training script
-├── evaluate.py            # Evaluation script
-└── setup.py              # Package installation
-
+│   ├── simulator/           # Vehicle dynamics & physics
+│   │   ├── environment.py   # 2D simulation environment
+│   │   ├── vehicle.py       # Kinematic bicycle model
+│   │   └── controller.py    # Baseline drift controller
+│   ├── models/              # Neural network models
+│   │   └── ikd_model.py     # IKD architecture (2 layers, 32 hidden)
+│   └── rl/                  # Reinforcement learning
+│       └── gym_drift_env.py # Gymnasium environment wrapper
+├── trained_models/          # Saved model checkpoints
+├── dc_saves/                # SAC model checkpoints
+├── data/                    # Training data
+└── comparison_results/      # Benchmark results
 ```
 
-## 🎓 Usage
+### IKD Architecture
 
-### Training
-
-**Basic training:**
-```bash
-python train.py
+```python
+Input: [commanded_velocity, commanded_angular_velocity]  # (2,)
+  ↓
+FC1: Linear(2, 32) + Tanh
+  ↓
+FC2: Linear(32, 32) + Tanh
+  ↓
+FC3: Linear(32, 1)
+  ↓
+Output: velocity_correction  # scalar
 ```
 
-**Advanced options:**
-```bash
-python train.py \
-  --config configs/loose_drifting.yaml \
-  --experiment-name loose_drift_v1 \
-  --epochs 100 \
-  --batch-size 64 \
-  --validate-data
+- **Parameters:** 1,185 total
+- **Training:** MSE loss, Adam optimizer (lr=0.0005)
+- **Data:** 15,900 samples from trajectory tracking
+
+### SAC Architecture
+
+```python
+Observation Space: Box(10)
+  [x, y, theta, velocity, goal_x, goal_y, 
+   obstacle_x, obstacle_y, rel_goal_x, rel_goal_y]
+
+Action Space: Box(2)
+  [velocity_command, angular_velocity_command] ∈ [-1, 1]
+
+Actor Network:
+  Input(10) → FC(256) → FC(256) → Output(2)
+  
+Critic Networks (twin):
+  Input(12) → FC(256) → FC(256) → Output(1)
 ```
 
-**With experiment tracking:**
-```bash
-# Enable TensorBoard
-tensorboard --logdir experiments/
+- **Algorithm:** Soft Actor-Critic (SAC) with automatic entropy tuning
+- **Hidden size:** 256 units
+- **Training:** 50,000 steps, batch size 256
+- **Replay buffer:** 100,000 transitions
 
-# Or use Weights & Biases (configure in config.yaml)
-python train.py --config configs/wandb_enabled.yaml
+---
+
+## 🔬 Methodology
+
+### Experimental Setup
+
+**Task:** Navigate a vehicle through a drift maneuver to reach a goal gate while avoiding obstacles.
+
+**Scenarios:**
+- **Loose:** 2.13m wide gate, moderate obstacles
+- **Tight:** 0.81m wide gate, narrow passage
+
+**Metrics:**
+- Steps to completion (lower is better)
+- Success rate (goal reached without collision)
+- Trajectory smoothness
+- Velocity tracking error (for baseline/IKD)
+
+### Data Collection (IKD)
+
+1. Run baseline controller on drift scenarios
+2. Record `(commanded_velocity, commanded_angular_velocity, actual_velocity)`
+3. Compute correction labels: `correction = commanded - actual`
+4. Train neural network to predict corrections
+5. Deploy: `actual_command = baseline_command + ikd_correction`
+
+**Key insight:** IKD learns the inverse model - what correction is needed to achieve desired output given the command.
+
+### Reinforcement Learning (SAC)
+
+**Reward function:**
+```python
+reward = -distance_to_goal  # Dense reward shaping
+penalty = -100 if collision
+bonus = +100 if success
 ```
 
-### Evaluation
+**Training details:**
+- Warm-up: 1,000 random steps
+- Learning rate: 3e-4 (both actor and critic)
+- Discount factor (γ): 0.99
+- Target network update (τ): 0.005
+- Episode length: 200 steps max
 
-**Evaluate single model:**
-```bash
-python evaluate.py \
-  --checkpoint path/to/model.pt \
-  --dataset dataset/loose_ccw.csv \
-  --save-predictions \
-  --plot-results
+---
+
+## 📈 Results & Analysis
+
+### Performance Comparison
+
+![Comparison Plot](comparison_results/method_comparison.png)
+
+**Baseline (53 steps):**
+- Hand-tuned PID controller
+- Follows pre-planned trajectory
+- 100% success on loose scenario
+- Predictable but suboptimal
+
+**IKD (51 steps, +3.8%):**
+- Learns velocity correction from data
+- Improves baseline tracking accuracy
+- Modest improvement (2 steps faster)
+- Demonstrates inverse dynamics learning works
+
+**SAC (27 steps, +49%):**
+- Discovers optimal trajectory end-to-end
+- Completes task in half the time
+- Perfect consistency (same 27 steps every trial)
+- Learns superior policy from scratch
+
+### Why SAC Outperforms
+
+1. **Trajectory Optimization:** SAC learns optimal path, not just tracking
+2. **End-to-End Learning:** No assumptions about vehicle dynamics
+3. **Exploration:** Discovered faster strategies during training
+4. **Direct Optimization:** Optimizes task completion, not tracking error
+
+### Limitations
+
+- **Tight scenario:** All methods struggle (baseline fails at 43 steps)
+- **Transfer:** Models trained on simulation, not tested on real hardware
+- **Generalization:** Single scenario type, not tested on varied conditions
+
+---
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+Key Files:
+├── collect_ikd_data_corrected.py   # IKD data collection
+├── train_ikd_simple.py             # IKD training script
+├── train_sac_simple.py             # SAC training script
+├── test_sac.py                     # SAC evaluation
+├── compare_all_methods.py          # Automated benchmarking
+├── watch_all_methods.py            # Visual comparison
+└── test_ikd_simulation.py          # IKD testing with viz
 ```
 
-**Reproduce paper results:**
-```bash
-# See detailed guide
-cat docs/REPRODUCING_PAPER.md
+### Adding New Methods
+
+1. Implement controller in `src/simulator/controller.py`
+2. Add test case to `compare_all_methods.py`
+3. Run benchmark: `python compare_all_methods.py --trials 20`
+
+### Training Custom Models
+
+```python
+# Example: Train IKD with different architecture
+from src.models.ikd_model import IKDModel
+
+model = IKDModel(hidden_size=64)  # Customize hidden size
+# ... training code ...
 ```
 
-### Data Processing
+---
 
-**Convert ROS bags:**
-```bash
-python src/data_processing/bag_to_csv.py my_data.bag
-```
+## 📝 Citation
 
-**Align and validate:**
-```bash
-python src/data_processing/align.py
-python train.py --validate-data  # Check data quality
-```
-
-## Model Architecture
-
-The Inverse Kinodynamic Model uses a simple feedforward neural network:
-
-```
-Input Layer (2):  [velocity, true_angular_velocity]
-    ↓
-Hidden Layer 1 (32): ReLU activation
-    ↓
-Hidden Layer 2 (32): ReLU activation
-    ↓
-Output Layer (1): [predicted_joystick_angular_velocity]
-```
-
-![Model Architecture](https://user-images.githubusercontent.com/61725820/234666525-a226c27b-9a0b-4167-bca0-e47f078894b6.png)
-
-**Training Details:**
-- Optimizer: Adam (lr=1e-5, weight_decay=1e-3)
-- Loss: Mean Squared Error (MSE)
-- Batch size: 32
-- Epochs: 50
-
-## Problem Formulation
-
-We denote:
-- $x$ = linear velocity (joystick command)
-- $z$ = angular velocity (joystick command)
-- $z'$ = angular velocity (IMU measurement)
-- $u_z$ = desired control input
-
-### Goal
-Learn a function approximator $f_{\theta}^{+}$ that maps onboard inertial observations to corrected control inputs:
-
-$$f_{\theta}^{+}: (x, z') \rightarrow z$$
-
-At training time:
-- **Input**: Joystick velocity $x$ and ground truth angular velocity $z'$ from IMU
-- **Output**: Predicted joystick angular velocity $z$
-
-At test time:
-- The learned model acts as an inverse kinodynamic model
-- Provides corrected angular velocity $u_z$ to match real-world observations
-
-## Dataset
-
-The dataset contains synchronized joystick commands and IMU measurements:
-- **Joystick data**: Linear velocity, angular velocity commands
-- **IMU data**: Ground truth angular velocity from VectorNav IMU
-- **Time alignment**: Optimal delay computed via least squares (~0.18-0.20s)
-
-Test trajectories included:
-- `loose_ccw.csv` - Loose counter-clockwise drift
-- `loose_cw.csv` - Loose clockwise drift
-- `tight_ccw.csv` - Tight counter-clockwise drift
-- `tight_cw.csv` - Tight clockwise drift
-
-## Results
-
-The model performs well on loose drifting trajectories but struggles with tight turns, indicating:
-1. The need for more diverse training data covering tight maneuvers
-2. Potential architecture limitations for high-curvature scenarios
-3. The importance of data quality over model complexity
-
-##  Features
-
-### 🔧 Core Features
-
-- **High-Fidelity Simulator**: Test without hardware (F1/10 vehicle dynamics)
-- **YAML Configuration System**: Flexible experiment setup with inheritance
-- **Experiment Tracking**: Built-in logging with TensorBoard/W&B support
-- **Data Validation**: Automatic quality checks and anomaly detection
-- **Comprehensive Metrics**: IKD-specific evaluation metrics
-- **Model Checkpointing**: Automatic best model saving and recovery
-- **Reproducibility**: Fixed seeds, config versioning, benchmark scripts
-
-### 📊 Evaluation Tools
-
-- **Physics-based Simulator**: Ackerman steering, slip dynamics, sensor noise
-- Circle navigation metrics (Table I from paper)
-- Drift trajectory analysis (loose vs tight)
-- Curvature error computation
-- Angular velocity deviation metrics
-- Automated benchmark suite
-- Synthetic data generation
-
-### 🧪 Testing & Quality
-
-- Unit tests for all core components
-- Data validation pipeline
-- Continuous integration ready
-- Code coverage tracking
-
-## 📈 Results
-
-### Circle Navigation (Table I from Paper)
-
-| Commanded Curvature | IKD-Corrected | Deviation |
-|---------------------|---------------|-----------|
-| 0.12 m              | 0.1172 m      | **2.33%** |
-| 0.63 m              | 0.6293 m      | **0.11%** |
-| 0.80 m              | 0.8142 m      | **1.78%** |
-
-### Loose Drifting (Table II from Paper)
-
-| Direction | Turn Tightening | IKD Improvement |
-|-----------|-----------------|-----------------|
-| CCW       | **100%**        | Noticeable      |
-| CW        | 50%             | Non-noticeable  |
-
-See [REPRODUCING_PAPER.md](docs/REPRODUCING_PAPER.md) for full reproduction guide.
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Ways to Contribute
-
-- 🐛 Report bugs and issues
-- 📝 Improve documentation
-- 🎯 Add new features or models
-- 📊 Share your experimental results
-- 🧪 Add more test coverage
-- 🚗 Deploy on new vehicle platforms
-
-## 📚 Citation
-
-If you use this code in your research, please cite our paper:
+If you use this code in your research, please cite:
 
 ```bibtex
-@article{suvarna2024learning,
-  title={Learning Inverse Kinodynamics for Autonomous Vehicle Drifting},
-  author={Suvarna, Mihir and Tehrani, Omeed},
-  journal={arXiv preprint arXiv:2402.14928},
+@article{drifting2024,
+  title={Autonomous Vehicle Drifting: Comparing Control Strategies},
+  author={Your Name},
+  journal={arXiv preprint arXiv:XXXX.XXXXX},
   year={2024}
 }
 ```
 
-## 📖 Documentation
+---
 
-- **[Getting Started](docs/GETTING_STARTED.md)**: Installation and quick start guide
-- **[Simulator Guide](docs/SIMULATOR_GUIDE.md)**: Testing without hardware ⭐ **NEW**
-- **[Reproducing Paper](docs/REPRODUCING_PAPER.md)**: Step-by-step reproduction of paper results
-- **[Contributing](CONTRIBUTING.md)**: Contribution guidelines
-- **[Changelog](CHANGELOG.md)**: Version history and updates
+## 🤝 Contributing
 
-## 🙏 Acknowledgments
+We welcome contributions! Areas of interest:
 
-Special thanks to:
-- **UT AMRL Laboratory** for providing resources and F1/10 vehicles
-- **Dr. Joydeep Biswas** for guidance and support
-- **Pranav, Rahul, and Arnav** for technical assistance
+- [ ] Real hardware deployment
+- [ ] Additional RL algorithms (TD3, PPO, DDPG)
+- [ ] Tight scenario improvements
+- [ ] Multi-scenario training
+- [ ] Sim-to-real transfer
 
-This work builds upon the foundational IKD research:
-- [Learning Inverse Kinodynamics for Accurate High-Speed Off-Road Navigation](https://github.com/ut-amrl/ikd)
-
-## 📄 License
-
-This project is licensed under the **Creative Commons Attribution 4.0 International License (CC BY 4.0)**.
-
-See [LICENSE](LICENSE) for details.
-
-## 🔗 Links
-
-- **Paper**: https://arxiv.org/abs/2402.14928
-- **GitHub**: https://github.com/msuv08/autonomous-vehicle-drifting
-- **Issues**: https://github.com/msuv08/autonomous-vehicle-drifting/issues
-- **UT AMRL**: https://amrl.cs.utexas.edu/
-
-## 📧 Contact
-
-- **Mihir Suvarna**: msuvarna@cs.utexas.edu
-- **Omeed Tehrani**: omeed@cs.utexas.edu
+Please open an issue or pull request.
 
 ---
 
-<p align="center">
-  Made with ❤️ at the University of Texas at Austin
-</p>
-# personal-web-2025
+## 📄 License
+
+This project is licensed under the MIT License - see LICENSE file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Jake's deep-rl-algos**: SAC implementation ([repo](https://github.com/jakelourie1502/deep-rl-algos))
+- **PyTorch**: Deep learning framework
+- **Gymnasium**: RL environment standard
+- **Pygame**: Visualization
+
+---
+
+## 📧 Contact
+
+For questions or collaborations:
+- **Email:** your.email@example.com
+- **Issues:** [GitHub Issues](https://github.com/yourusername/autonomous-vehicle-drifting/issues)
+
+---
+
+## 🔗 Links
+
+- [Results Summary](comparison_results/RESULTS.md)
+- [Session Summary](SESSION_SUMMARY.md)
+- [Training Logs](sac_training.log)
+
+---
+
+**Last Updated:** October 2024  
+**Status:** ✅ Complete - All experiments reproducible

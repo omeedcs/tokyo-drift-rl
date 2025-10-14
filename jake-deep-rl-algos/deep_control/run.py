@@ -11,13 +11,20 @@ def run_env(agent, env, episodes, max_steps, render=False, verbosity=1, discount
         env.render("rgb_array")
     for episode in range(episodes):
         episode_return = 0.0
-        state = env.reset()
+        result = env.reset()
+        state = result[0] if isinstance(result, tuple) else result
         done, info = False, {}
         for step_num in range(max_steps):
             if done:
                 break
             action = agent.forward(state)
-            state, reward, done, info = env.step(action)
+            step_result = env.step(action)
+            # Handle both old gym (4 returns) and new gym (5 returns)
+            if len(step_result) == 5:
+                state, reward, terminated, truncated, info = step_result
+                done = terminated or truncated
+            else:
+                state, reward, done, info = step_result
             if render:
                 env.render("rgb_array")
             episode_return += reward * (discount ** step_num)
@@ -55,7 +62,8 @@ def collect_experience_by_steps(
     random_process=None,
 ):
     if current_state is None:
-        state = env.reset()
+        result = env.reset()
+        state = result[0] if isinstance(result, tuple) else result
     else:
         state = current_state
     if current_done is None:
@@ -66,14 +74,20 @@ def collect_experience_by_steps(
         steps_this_ep = 0
     for step in range(num_steps):
         if done:
-            state = env.reset()
+            result = env.reset()
+            state = result[0] if isinstance(result, tuple) else result
             steps_this_ep = 0
 
         # collect a new transition
         action = agent.collection_forward(state)
         if random_process is not None:
             action = exploration_noise(action, random_process, env.action_space.high[0])
-        next_state, reward, done, info = env.step(action)
+        step_result = env.step(action)
+        if len(step_result) == 5:
+            next_state, reward, terminated, truncated, info = step_result
+            done = terminated or truncated
+        else:
+            next_state, reward, done, info = step_result
         buffer.push(state, action, reward, next_state, done)
         state = next_state
 
@@ -92,16 +106,20 @@ def collect_experience_by_rollouts(
     random_process=None,
 ):
     for rollout in range(num_rollouts):
-        state = env.reset()
+        result = env.reset()
+        state = result[0] if isinstance(result, tuple) else result
         done = False
         step_num = 0
         while not done:
             action = agent.collection_forward(state)
             if random_process is not None:
-                action = exploration_noise(
-                    action, random_process, env.action_space.high[0]
-                )
-            next_state, reward, done, info = env.step(action)
+                action = exploration_noise(action, random_process, env.action_space.high[0])
+            step_result = env.step(action)
+            if len(step_result) == 5:
+                next_state, reward, terminated, truncated, info = step_result
+                done = terminated or truncated
+            else:
+                next_state, reward, done, info = step_result
             buffer.push(state, action, reward, next_state, done)
             state = next_state
             step_num += 1
@@ -111,23 +129,23 @@ def collect_experience_by_rollouts(
 
 def warmup_buffer(buffer, env, warmup_steps, max_episode_steps):
     # use warmp up steps to add random transitions to the buffer
-    state = env.reset()
+    result = env.reset()
+    state = result[0] if isinstance(result, tuple) else result
     done = False
-    steps_this_ep = 0
     for _ in range(warmup_steps):
-        if done:
-            state = env.reset()
-            steps_this_ep = 0
-            done = False
         rand_action = env.action_space.sample()
-        if not isinstance(rand_action, np.ndarray):
-            rand_action = np.array(float(rand_action))
-        next_state, reward, done, info = env.step(rand_action)
+        step_result = env.step(rand_action)
+        # Handle both old gym (4 returns) and new gym (5 returns)
+        if len(step_result) == 5:
+            next_state, reward, terminated, truncated, info = step_result
+            done = terminated or truncated
+        else:
+            next_state, reward, done, info = step_result
         buffer.push(state, rand_action, reward, next_state, done)
         state = next_state
-        steps_this_ep += 1
-        if steps_this_ep >= max_episode_steps:
-            done = True
+        if done:
+            result = env.reset()
+            state = result[0] if isinstance(result, tuple) else result
 
 
 if __name__ == "__main__":

@@ -228,11 +228,18 @@ def sac(
         # collect experience
         for _ in range(transitions_per_step):
             if done:
-                state = train_env.reset()
+                result = train_env.reset()
+                state = result[0] if isinstance(result, tuple) else result
                 steps_this_ep = 0
                 done = False
             action = agent.sample_action(state)
-            next_state, reward, done, info = train_env.step(action)
+            step_result = train_env.step(action)
+            # Handle both old gym (4 returns) and new gym (5 returns)
+            if len(step_result) == 5:
+                next_state, reward, terminated, truncated, info = step_result
+                done = terminated or truncated
+            else:
+                next_state, reward, done, info = step_result
             if infinite_bootstrap:
                 # allow infinite bootstrapping
                 if steps_this_ep + 1 == max_episode_steps:
